@@ -25,6 +25,10 @@ Capacidades abordadas:
 
 ## Arquitetura
 
+### Princípios
+
+- docs/architecture/principles/principles.md
+
 ### Modelo C4
 
 - docs/architecture/diagrams/c4-context.puml
@@ -62,12 +66,16 @@ Capacidades abordadas:
 
 ## Serviços
 
+- docs/services/agent-gateway.md
 - docs/services/agent-runtime.md
 - docs/services/agent-registry.md
 - docs/services/knowledge-service.md
 - docs/services/memory-service.md
 - docs/services/mcp-registry.md
 - docs/services/governance-service.md
+- docs/services/evaluation-service.md
+- docs/services/audit-service.md
+- docs/services/billing-service.md
 
 ---
 
