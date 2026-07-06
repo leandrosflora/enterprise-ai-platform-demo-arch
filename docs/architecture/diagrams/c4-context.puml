@@ -1,0 +1,33 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Enterprise AI Platform - Context Diagram
+
+Person(businessUser, "Business User", "Uses AI solutions to execute business activities")
+Person(aiArchitect, "AI Architect", "Defines governance, standards and reference architectures")
+Person(developer, "Developer", "Builds agents, tools and AI-enabled applications")
+Person(platformTeam, "Platform Team", "Operates the Enterprise AI Platform")
+
+System_Boundary(platform, "Enterprise AI Platform") {
+    System(aiPlatform, "Enterprise AI Platform", "Corporate platform for building, operating and governing AI solutions at scale")
+}
+
+System_Ext(foundationModels, "Foundation Models", "Amazon Bedrock, OpenAI, Anthropic or other model providers")
+System_Ext(corporateSystems, "Corporate Systems", "ERP, CRM, Core Banking, Legacy Systems and internal APIs")
+System_Ext(knowledgeSources, "Knowledge Sources", "Documents, Wikis, Data Lake, Data Warehouse and corporate repositories")
+System_Ext(identityProvider, "Identity Provider", "Enterprise IAM, OIDC, SSO and RBAC")
+System_Ext(observabilityStack, "Observability Stack", "Logs, metrics, traces and operational dashboards")
+
+Rel(businessUser, aiPlatform, "Uses agents and copilots")
+Rel(aiArchitect, aiPlatform, "Defines governance and architecture standards")
+Rel(developer, aiPlatform, "Builds and publishes agents")
+Rel(platformTeam, aiPlatform, "Operates platform capabilities")
+
+Rel(aiPlatform, foundationModels, "Invokes models")
+Rel(aiPlatform, corporateSystems, "Executes tools and business actions")
+Rel(aiPlatform, knowledgeSources, "Retrieves and indexes knowledge")
+Rel(aiPlatform, identityProvider, "Authenticates and authorizes users")
+Rel(aiPlatform, observabilityStack, "Publishes logs, metrics and traces")
+
+@enduml
