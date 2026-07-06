@@ -1,0 +1,17 @@
+asyncapi: '3.0.0'
+info:
+  title: Enterprise AI Platform Events
+  version: 1.0.0
+channels:
+  agent.invoked:
+    address: agent.invoked
+  agent.published:
+    address: agent.published
+  tool.executed:
+    address: tool.executed
+  knowledge.ingested:
+    address: knowledge.ingested
+  evaluation.completed:
+    address: evaluation.completed
+  governance.approved:
+    address: governance.approved
