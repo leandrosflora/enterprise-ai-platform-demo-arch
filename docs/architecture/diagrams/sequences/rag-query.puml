@@ -1,0 +1,27 @@
+@startuml
+
+title RAG Query - Sequence Diagram
+
+autonumber
+
+participant "Agent Runtime" as Runtime
+participant "Knowledge Service" as Knowledge
+participant "Policy Engine" as Policy
+participant "OpenSearch" as OpenSearch
+participant "Foundation Model" as Model
+queue "Kafka" as Kafka
+participant "Audit Service" as Audit
+
+Runtime -> Knowledge: POST /knowledge-bases/{id}/search
+Knowledge -> Policy: Validate access and filters
+Policy --> Knowledge: Access granted
+Knowledge -> Model: Generate query embedding
+Model --> Knowledge: Embedding vector
+Knowledge -> OpenSearch: Vector + metadata search
+OpenSearch --> Knowledge: Ranked chunks
+Knowledge -> Knowledge: Apply reranking and citation formatting
+Knowledge -> Kafka: Publish knowledge.retrieved
+Knowledge --> Runtime: Chunks, scores and citations
+Kafka -> Audit: Consume knowledge.retrieved
+
+@enduml
