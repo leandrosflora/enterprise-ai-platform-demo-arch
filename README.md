@@ -29,6 +29,10 @@ Capacidades abordadas:
 
 - docs/architecture/principles/principles.md
 
+### Requisitos Não Funcionais
+
+- docs/architecture/non-functional-requirements.md
+
 ### Modelo C4
 
 - docs/architecture/diagrams/c4-context.puml
@@ -103,6 +107,7 @@ Capacidades abordadas:
 
 - docs/security/authentication.md
 - docs/security/authorization.md
+- docs/security/threat-model.md
 - docs/security/lgpd.md
 
 ---
@@ -120,6 +125,13 @@ Capacidades abordadas:
 
 ---
 
+## Runbooks
+
+- docs/runbooks/onboarding-agent.md
+- docs/runbooks/onboarding-mcp.md
+
+---
+
 ## Integrações
 
 - docs/integrations/foundation-models.md
@@ -133,6 +145,21 @@ Capacidades abordadas:
 ## Exemplos End-to-End
 
 - docs/examples/end-to-end-agent-rag-mcp.md
+- docs/examples/prompt-example.md
+- docs/examples/tool-call-example.md
+- docs/examples/kafka-event-example.md
+- docs/examples/trace-example.md
+- docs/examples/evaluation-example.md
+
+---
+
+## Arquiteturas de Referência
+
+- docs/reference-architectures/customer-service-agent.md
+- docs/reference-architectures/internal-copilot.md
+- docs/reference-architectures/document-analysis-agent.md
+- docs/reference-architectures/backoffice-automation-agent.md
+- docs/reference-architectures/conversational-analytics.md
 
 ---
 
