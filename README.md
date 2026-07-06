@@ -1,31 +1,31 @@
-# Enterprise AI Platform - Reference Architecture
+# Enterprise AI Platform - Arquitetura de Referência
 
-> Enterprise-grade AI Platform reference architecture covering Agentic AI, MCP, RAG, Memory, Governance, Evaluation, Observability, Security and FinOps.
-
----
-
-## Architecture Overview
-
-This repository demonstrates how to design, govern and operate an Enterprise AI Platform at scale.
-
-Capabilities covered:
-
-- Agent Platform
-- Knowledge Platform
-- Memory Platform
-- MCP Platform
-- Governance Platform
-- Evaluation Platform
-- Observability Platform
-- FinOps Platform
+> Arquitetura de referência para uma Plataforma Corporativa de IA cobrindo Agentic AI, MCP, RAG, Memória, Governança, Avaliação, Observabilidade, Segurança e FinOps.
 
 ---
 
-# Documentation Map
+## Visão Geral
 
-## Architecture
+Este repositório demonstra como projetar, governar e operar uma Plataforma Corporativa de IA em escala empresarial.
 
-### C4 Model
+Capacidades abordadas:
+
+- Plataforma de Agentes
+- Plataforma de Conhecimento
+- Plataforma de Memória
+- Plataforma MCP
+- Plataforma de Governança
+- Plataforma de Avaliação
+- Plataforma de Observabilidade
+- Plataforma de FinOps
+
+---
+
+# Mapa da Documentação
+
+## Arquitetura
+
+### Modelo C4
 
 - docs/architecture/diagrams/c4-context.puml
 - docs/architecture/diagrams/c4-container.puml
@@ -34,7 +34,7 @@ Capabilities covered:
 - docs/architecture/diagrams/c4-component-governance-service.puml
 - docs/architecture/diagrams/c4-deployment.puml
 
-### Sequence Diagrams
+### Diagramas de Sequência
 
 - docs/architecture/diagrams/sequences/agent-invocation.puml
 - docs/architecture/diagrams/sequences/rag-query.puml
@@ -47,7 +47,7 @@ Capabilities covered:
 
 ---
 
-## Domains
+## Domínios
 
 - docs/domains/agent-platform.md
 - docs/domains/knowledge-platform.md
@@ -60,7 +60,7 @@ Capabilities covered:
 
 ---
 
-## Services
+## Serviços
 
 - docs/services/agent-runtime.md
 - docs/services/agent-registry.md
@@ -71,7 +71,7 @@ Capabilities covered:
 
 ---
 
-## Contracts
+## Contratos
 
 - docs/contracts/apis.md
 - docs/contracts/events.md
@@ -81,7 +81,7 @@ Capabilities covered:
 
 ---
 
-## Governance
+## Governança
 
 - docs/governance/approval-workflow.md
 - docs/governance/ai-catalog.md
@@ -90,7 +90,7 @@ Capabilities covered:
 
 ---
 
-## Security
+## Segurança
 
 - docs/security/authentication.md
 - docs/security/authorization.md
@@ -98,7 +98,7 @@ Capabilities covered:
 
 ---
 
-## Observability
+## Observabilidade
 
 - docs/observability/tracing.md
 - docs/observability/dashboards.md
@@ -111,7 +111,7 @@ Capabilities covered:
 
 ---
 
-## Integrations
+## Integrações
 
 - docs/integrations/foundation-models.md
 - docs/integrations/identity-provider.md
@@ -123,17 +123,17 @@ Capabilities covered:
 
 ## ADRs
 
-- ADR-001 Agent Runtime Strategy
-- ADR-002 Vector Database Selection
-- ADR-003 MCP Strategy
-- ADR-004 Observability Strategy
-- ADR-005 Evaluation Framework
+- ADR-001 Estratégia de Agent Runtime
+- ADR-002 Seleção de Banco Vetorial
+- ADR-003 Estratégia MCP
+- ADR-004 Estratégia de Observabilidade
+- ADR-005 Framework de Avaliação
 
 ---
 
-# Reference Technology Stack
+# Stack Tecnológico de Referência
 
-## Platform
+## Plataforma
 
 - AWS
 - Kubernetes (EKS)
@@ -141,14 +141,14 @@ Capabilities covered:
 - Amazon Bedrock
 - OpenTelemetry
 
-## Data
+## Dados
 
 - PostgreSQL
 - MongoDB
 - OpenSearch
 - Redis
 
-## Development
+## Desenvolvimento
 
 - .NET
 - React
@@ -157,46 +157,46 @@ Capabilities covered:
 
 ---
 
-# Implementation Roadmap
+# Roadmap de Implementação
 
-## Phase 1
+## Fase 1
 
-Foundation Platform
+Fundação da Plataforma
 
-## Phase 2
+## Fase 2
 
-Knowledge Platform and Enterprise RAG
+Plataforma de Conhecimento e RAG Corporativo
 
-## Phase 3
+## Fase 3
 
-MCP and Corporate Integrations
+MCP e Integrações Corporativas
 
-## Phase 4
+## Fase 4
 
-Governance and Evaluation
+Governança e Avaliação
 
-## Phase 5
+## Fase 5
 
-Scale, Marketplace and FinOps
+Escala, Marketplace e FinOps
 
-Roadmap details:
+Detalhes completos:
 
 - docs/roadmap/implementation-roadmap.md
 
 ---
 
-# Target Audience
+# Público-Alvo
 
-- Enterprise Architects
-- Solution Architects
-- AI Architects
-- Platform Engineers
-- Technical Leads
-- Governance Teams
-- Security Teams
+- Arquitetos Corporativos
+- Arquitetos de Soluções
+- Arquitetos de IA
+- Engenheiros de Plataforma
+- Líderes Técnicos
+- Times de Governança
+- Times de Segurança
 
 ---
 
-# License
+# Licença
 
 MIT
