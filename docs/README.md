@@ -1,41 +1,63 @@
 # Documentação
 
-Esta pasta concentra a documentação arquitetural da Enterprise AI Platform.
+Esta pasta contém a arquitetura de referência, contratos executáveis, controles de governança e guias operacionais da Enterprise AI Platform.
+
+## Comece por aqui
+
+1. [Visão geral](index.md)
+2. [Princípios arquiteturais](architecture/principles/principles.md)
+3. [Control plane e data plane](architecture/control-plane-data-plane.md)
+4. [Requisitos não funcionais](architecture/non-functional-requirements.md)
+5. [Contratos HTTP](contracts/openapi.yaml)
+6. [Contratos de eventos](contracts/async-api.yaml)
+7. [AI Risk Framework](governance/ai-risk-framework.md)
+8. [Tracing e SLOs](observability/tracing.md)
 
 ## Estrutura
 
 ```text
-architecture/          Diagramas, princípios e requisitos não funcionais
-adr/                   Architecture Decision Records (única fonte de decisões arquiteturais)
-domains/               Domínios funcionais da plataforma
-services/              Documentação dos serviços da plataforma
-integrations/          Integrações externas e corporativas
-contracts/             Eventos, APIs (REST e async) e data stores
-governance/            Governança de IA, riscos e ciclo de aprovação
-observability/         Tracing, métricas, dashboards e alertas
-security/              Autenticação, autorização, LGPD, segredos e threat model
-finops/                Custos, chargeback, showback e token analytics
-runbooks/              Guias operacionais
-roadmap/               Evolução planejada da plataforma
-examples/              Exemplos ponta a ponta de eventos, prompts, traces e avaliações
-reference-architectures/  Blueprints de soluções de referência por caso de uso
+architecture/             Princípios, NFRs, C4 e decisões de separação de planos
+adr/                      Architecture Decision Records
+contracts/                OpenAPI, AsyncAPI, MCP, eventos e data stores
+domains/                  Domínios funcionais da plataforma
+services/                 Responsabilidades e contratos por serviço
+governance/               Workflow, risco, catálogo e ciclo de modelos
+security/                 Autenticação, autorização, LGPD e threat model
+observability/            Tracing, métricas, dashboards, alertas e SLOs
+finops/                   Custos, budgets, chargeback e showback
+runbooks/                 Procedimentos operacionais e troubleshooting
+examples/                 Exemplos ponta a ponta
+reference-architectures/  Blueprints por caso de uso
+roadmap/                   Sequenciamento de implantação
 ```
 
-## Princípios e Requisitos Não Funcionais
+## Fontes canônicas
 
-- [Princípios Arquiteturais](architecture/principles/principles.md)
-- [Requisitos Não Funcionais](architecture/non-functional-requirements.md)
+| Assunto | Fonte |
+|---|---|
+| APIs HTTP | [`contracts/openapi.yaml`](contracts/openapi.yaml) |
+| Eventos | [`contracts/async-api.yaml`](contracts/async-api.yaml) |
+| Convenções de eventos | [`contracts/events.md`](contracts/events.md) |
+| SLOs | [`architecture/non-functional-requirements.md`](architecture/non-functional-requirements.md) |
+| Controles de risco | [`governance/ai-risk-framework.md`](governance/ai-risk-framework.md) |
+| Autorização | [`security/authorization.md`](security/authorization.md) |
 
-## Diagramas iniciais
+Exemplos e documentos derivados não podem redefinir enums, envelopes ou metas diferentes das fontes canônicas.
+
+## Arquitetura
 
 - [C4 Context](architecture/diagrams/c4-context.puml)
 - [C4 Container](architecture/diagrams/c4-container.puml)
+- [C4 Deployment](architecture/diagrams/c4-deployment.puml)
+- [Control plane e data plane](architecture/control-plane-data-plane.md)
+- [Event Storming](architecture/diagrams/event-storming.md)
 
-## Serviços
+## Serviços principais
 
 - [Agent Gateway](services/agent-gateway.md)
 - [Agent Runtime](services/agent-runtime.md)
 - [Agent Registry](services/agent-registry.md)
+- [Model Gateway](services/model-gateway.md)
 - [Knowledge Service](services/knowledge-service.md)
 - [Memory Service](services/memory-service.md)
 - [MCP Registry](services/mcp-registry.md)
@@ -44,33 +66,19 @@ reference-architectures/  Blueprints de soluções de referência por caso de us
 - [Audit Service](services/audit-service.md)
 - [Billing Service](services/billing-service.md)
 
-## Contratos Implementáveis
+## Operação
 
-- [OpenAPI](contracts/openapi.yaml)
-- [AsyncAPI](contracts/async-api.yaml)
-- [MCP Contracts](contracts/mcp-contracts.md)
+- [Onboarding de agente](runbooks/onboarding-agent.md)
+- [Onboarding MCP](runbooks/onboarding-mcp.md)
+- [Troubleshooting de invocação](runbooks/troubleshooting-agent-invocation.md)
 
-## Segurança e Governança
+## Validação
 
-- [Autenticação](security/authentication.md)
-- [Autorização](security/authorization.md)
-- [Threat Model](security/threat-model.md)
-- [LGPD](security/lgpd.md)
-- [AI Risk Framework](governance/ai-risk-framework.md)
+Na raiz do repositório:
 
-## Exemplos
-
-- [End-to-End: Agent + RAG + MCP](examples/end-to-end-agent-rag-mcp.md)
-- [Prompt](examples/prompt-example.md)
-- [Tool Call](examples/tool-call-example.md)
-- [Kafka Event](examples/kafka-event-example.md)
-- [Trace](examples/trace-example.md)
-- [Evaluation](examples/evaluation-example.md)
-
-## Arquiteturas de Referência
-
-- [Customer Service Agent](reference-architectures/customer-service-agent.md)
-- [Internal Copilot](reference-architectures/internal-copilot.md)
-- [Document Analysis Agent](reference-architectures/document-analysis-agent.md)
-- [Backoffice Automation Agent](reference-architectures/backoffice-automation-agent.md)
-- [Conversational Analytics](reference-architectures/conversational-analytics.md)
+```bash
+python scripts/validate_contracts.py
+python scripts/validate_docs.py
+./scripts/render_diagrams.sh
+mkdocs build --strict
+```

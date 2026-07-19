@@ -1,30 +1,147 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Enterprise AI Platform API
-  version: 1.0.0
-  description: HTTP contracts for agent invocation, agent catalog, knowledge bases, memory, governance and evaluations.
+  version: 1.1.0
+  description: >-
+    Contratos HTTP do control plane e data plane. O tenant é derivado da
+    identidade autenticada; clientes não podem escolher livremente outro tenant.
 servers:
   - url: https://api.enterprise-ai-platform.example.com
-    description: Reference production endpoint
+    description: Referência de produção
   - url: http://localhost:8080
-    description: Local development endpoint
+    description: Vertical slice local
 security:
-  - bearerAuth: []
+  - oidc:
+      - agent.read
+
 tags:
-  - name: Agent Gateway
-  - name: Agent Registry
-  - name: Knowledge Service
-  - name: Memory Service
-  - name: Governance Service
-  - name: Evaluation Service
+  - name: Agents
+  - name: Invocation
+  - name: Governance
+  - name: Knowledge
+  - name: Memory
+  - name: Evaluation
+
 paths:
-  /agents/{agentId}/invoke:
+  /v1/agents:
+    get:
+      tags: [Agents]
+      summary: Lista agentes visíveis para o tenant autenticado
+      operationId: listAgents
+      security:
+        - oidc: [agent.read]
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AgentStatus'
+      responses:
+        '200':
+          description: Página de agentes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
     post:
-      tags: [Agent Gateway]
-      summary: Invoke a published agent
+      tags: [Agents]
+      summary: Registra uma nova versão de agente em DRAFT
+      operationId: createAgent
+      security:
+        - oidc: [agent.write]
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '201':
+          description: Versão criada
+          headers:
+            ETag:
+              schema: {type: string}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/PolicyViolation'}
+
+  /v1/agents/{agentId}:
+    get:
+      tags: [Agents]
+      summary: Obtém metadados de um agente
+      operationId: getAgent
+      security:
+        - oidc: [agent.read]
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: Agente
+          headers:
+            ETag:
+              schema: {type: string}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /v1/agents/{agentId}:invoke:
+    post:
+      tags: [Invocation]
+      summary: Invoca uma versão publicada do agente
       operationId: invokeAgent
       security:
-        - bearerAuth: [agent.invoke]
+        - oidc: [agent.invoke]
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKeyOptional'
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentInvokeRequest'
+      responses:
+        '200':
+          description: Resposta completa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentInvokeResponse'
+        '202':
+          description: Execução assíncrona aceita
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedExecution'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/PolicyViolation'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+
+  /v1/agents/{agentId}:stream:
+    post:
+      tags: [Invocation]
+      summary: Invoca um agente com resposta via Server-Sent Events
+      operationId: streamAgent
+      security:
+        - oidc: [agent.invoke]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/AgentId'
@@ -34,114 +151,105 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentInvokeRequest'
-            examples:
-              ragQuestion:
-                value:
-                  input: Quais políticas internas falam sobre retenção de dados?
-                  channel: ai-portal
-                  sessionId: session-123
-                  context:
-                    businessUnit: compliance
-                    locale: pt-BR
-                    tenantId: enterprise
       responses:
         '200':
-          description: Agent response
+          description: "Eventos SSE até event completed ou event failed"
           content:
-            application/json:
+            text/event-stream:
               schema:
-                $ref: '#/components/schemas/AgentInvokeResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalError'
-  /agents:
-    get:
-      tags: [Agent Registry]
-      summary: List registered agents
-      operationId: listAgents
-      security:
-        - bearerAuth: [agent.read]
-      parameters:
-        - $ref: '#/components/parameters/CorrelationId'
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PageSize'
-        - name: status
-          in: query
-          schema:
-            $ref: '#/components/schemas/AgentStatus'
-        - name: owner
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Agents page
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentListResponse'
+                type: string
+                examples:
+                  - "event: token\ndata: {\"text\":\"Olá\"}\n\nevent: completed\ndata: {\"messageId\":\"msg-1\"}\n\n"
+
+  /v1/agents/{agentId}:submit:
     post:
-      tags: [Agent Registry]
-      summary: Register a new agent
-      operationId: createAgent
+      tags: [Governance]
+      summary: Submete uma versão para governança
+      operationId: submitAgent
       security:
-        - bearerAuth: [agent.write]
+        - oidc: [governance.submit]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/AgentId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateAgentRequest'
+              $ref: '#/components/schemas/GovernanceSubmissionRequest'
       responses:
-        '201':
-          description: Created agent
+        '202':
+          description: Submissão aceita
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Agent'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-  /agents/{agentId}:
-    get:
-      tags: [Agent Registry]
-      summary: Get agent metadata
-      operationId: getAgent
+                $ref: '#/components/schemas/GovernanceDecision'
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/PolicyViolation'}
+
+  /v1/agents/{agentId}:approve:
+    post:
+      tags: [Governance]
+      summary: Aprova uma versão submetida
+      operationId: approveAgent
       security:
-        - bearerAuth: [agent.read]
+        - oidc: [governance.approve]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GovernanceDecisionRequest'
       responses:
         '200':
-          description: Agent metadata
+          description: Decisão registrada
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Agent'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /agents/{agentId}/publish:
+                $ref: '#/components/schemas/GovernanceDecision'
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/PolicyViolation'}
+
+  /v1/agents/{agentId}:reject:
     post:
-      tags: [Governance Service]
-      summary: Publish an approved agent version
-      operationId: publishAgent
+      tags: [Governance]
+      summary: Rejeita uma versão submetida
+      operationId: rejectAgent
       security:
-        - bearerAuth: [governance.approve]
+        - oidc: [governance.approve]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GovernanceDecisionRequest'
+      responses:
+        '200':
+          description: Decisão registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernanceDecision'
+
+  /v1/agents/{agentId}:publish:
+    post:
+      tags: [Governance]
+      summary: Publica uma versão previamente aprovada
+      operationId: publishAgent
+      security:
+        - oidc: [agent.publish]
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/AgentId'
       requestBody:
         required: true
@@ -151,20 +259,24 @@ paths:
               $ref: '#/components/schemas/PublishAgentRequest'
       responses:
         '202':
-          description: Publication accepted
+          description: Publicação aceita
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Agent'
-  /knowledge-bases/{knowledgeBaseId}/documents:
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/PolicyViolation'}
+
+  /v1/knowledge-bases/{knowledgeBaseId}/documents:
     post:
-      tags: [Knowledge Service]
-      summary: Ingest a document into a knowledge base
+      tags: [Knowledge]
+      summary: Solicita ingestão de documento
       operationId: ingestDocument
       security:
-        - bearerAuth: [knowledge.write]
+        - oidc: [knowledge.write]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/KnowledgeBaseId'
       requestBody:
         required: true
@@ -174,18 +286,20 @@ paths:
               $ref: '#/components/schemas/IngestDocumentRequest'
       responses:
         '202':
-          description: Ingestion accepted
+          description: Ingestão aceita
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/IngestDocumentResponse'
-  /knowledge-bases/{knowledgeBaseId}/search:
+        '422': {$ref: '#/components/responses/PolicyViolation'}
+
+  /v1/knowledge-bases/{knowledgeBaseId}:search:
     post:
-      tags: [Knowledge Service]
-      summary: Search knowledge using hybrid/vector retrieval
+      tags: [Knowledge]
+      summary: Executa retrieval com enforcement por documento e chunk
       operationId: searchKnowledge
       security:
-        - bearerAuth: [knowledge.read]
+        - oidc: [knowledge.read]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/KnowledgeBaseId'
@@ -197,36 +311,40 @@ paths:
               $ref: '#/components/schemas/KnowledgeSearchRequest'
       responses:
         '200':
-          description: Search results
+          description: Resultados autorizados
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/KnowledgeSearchResponse'
-  /sessions/{sessionId}/memory:
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /v1/sessions/{sessionId}/memory:
     get:
-      tags: [Memory Service]
-      summary: Read session memory
+      tags: [Memory]
+      summary: Consulta memória autorizada da sessão
       operationId: getSessionMemory
       security:
-        - bearerAuth: [memory.read]
+        - oidc: [memory.read]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/SessionId'
       responses:
         '200':
-          description: Session memory
+          description: Memória da sessão
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionMemory'
-    post:
-      tags: [Memory Service]
-      summary: Append or update session memory
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [Memory]
+      summary: Atualiza memória com TTL e classificação
       operationId: updateSessionMemory
       security:
-        - bearerAuth: [memory.write]
+        - oidc: [memory.write]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/SessionId'
       requestBody:
         required: true
@@ -236,89 +354,37 @@ paths:
               $ref: '#/components/schemas/UpdateMemoryRequest'
       responses:
         '200':
-          description: Updated memory
+          description: Memória atualizada
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionMemory'
-  /governance/agents/{agentId}/submit:
-    post:
-      tags: [Governance Service]
-      summary: Submit an agent for governance review
-      operationId: submitAgentForApproval
+        '422': {$ref: '#/components/responses/PolicyViolation'}
+    delete:
+      tags: [Memory]
+      summary: Exclui a memória descartável da sessão
+      operationId: deleteSessionMemory
       security:
-        - bearerAuth: [governance.submit]
+        - oidc: [memory.delete]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
-        - $ref: '#/components/parameters/AgentId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GovernanceSubmissionRequest'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/SessionId'
       responses:
-        '202':
-          description: Submission accepted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GovernanceDecision'
-  /governance/agents/{agentId}/approve:
+        '204':
+          description: Memória eliminada ou anonimizada conforme política
+        '409': {$ref: '#/components/responses/Conflict'}
+
+  /v1/evaluations:
     post:
-      tags: [Governance Service]
-      summary: Approve an agent version
-      operationId: approveAgent
-      security:
-        - bearerAuth: [governance.approve]
-      parameters:
-        - $ref: '#/components/parameters/CorrelationId'
-        - $ref: '#/components/parameters/AgentId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GovernanceDecisionRequest'
-      responses:
-        '200':
-          description: Governance decision
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GovernanceDecision'
-  /governance/agents/{agentId}/reject:
-    post:
-      tags: [Governance Service]
-      summary: Reject an agent version
-      operationId: rejectAgent
-      security:
-        - bearerAuth: [governance.approve]
-      parameters:
-        - $ref: '#/components/parameters/CorrelationId'
-        - $ref: '#/components/parameters/AgentId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GovernanceDecisionRequest'
-      responses:
-        '200':
-          description: Governance decision
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GovernanceDecision'
-  /evaluations:
-    post:
-      tags: [Evaluation Service]
-      summary: Start an evaluation run
+      tags: [Evaluation]
+      summary: Inicia uma avaliação
       operationId: createEvaluation
       security:
-        - bearerAuth: [evaluation.write]
+        - oidc: [evaluation.write]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -327,100 +393,127 @@ paths:
               $ref: '#/components/schemas/CreateEvaluationRequest'
       responses:
         '202':
-          description: Evaluation queued
+          description: Avaliação enfileirada
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Evaluation'
-  /evaluations/{evaluationId}:
+
+  /v1/evaluations/{evaluationId}:
     get:
-      tags: [Evaluation Service]
-      summary: Get evaluation result
+      tags: [Evaluation]
+      summary: Obtém o resultado de uma avaliação
       operationId: getEvaluation
       security:
-        - bearerAuth: [evaluation.read]
+        - oidc: [evaluation.read]
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - name: evaluationId
           in: path
           required: true
-          schema:
-            type: string
+          schema: {type: string}
       responses:
         '200':
-          description: Evaluation result
+          description: Avaliação
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Evaluation'
+        '404': {$ref: '#/components/responses/NotFound'}
+
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://identity.example.com/.well-known/openid-configuration
+
   parameters:
     CorrelationId:
       name: X-Correlation-Id
       in: header
       required: false
-      schema:
-        type: string
-        format: uuid
-    Page:
-      name: page
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    PageSize:
-      name: pageSize
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
+      description: UUID fornecido pelo cliente ou gerado pela plataforma.
+      schema: {type: string, format: uuid}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: {type: string, minLength: 16, maxLength: 128}
+    IdempotencyKeyOptional:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Obrigatório quando a invocação puder executar ferramentas com efeito colateral.
+      schema: {type: string, minLength: 16, maxLength: 128}
     AgentId:
       name: agentId
       in: path
       required: true
-      schema:
-        type: string
+      schema: {type: string, pattern: '^[a-z0-9][a-z0-9-]{2,63}$'}
     KnowledgeBaseId:
       name: knowledgeBaseId
       in: path
       required: true
-      schema:
-        type: string
+      schema: {type: string}
     SessionId:
       name: sessionId
       in: path
       required: true
-      schema:
-        type: string
+      schema: {type: string}
+    PageToken:
+      name: pageToken
+      in: query
+      schema: {type: string}
+    PageSize:
+      name: pageSize
+      in: query
+      schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+
   responses:
     BadRequest:
-      description: Invalid request
+      description: Requisição inválida
       content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
     Unauthorized:
-      description: Missing or invalid token
-    Forbidden:
-      description: Token does not have required scope
+      description: Identidade ausente ou inválida
       content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    Forbidden:
+      description: A identidade não possui autorização
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
     NotFound:
-      description: Resource not found
+      description: Recurso não encontrado ou não visível
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    Conflict:
+      description: Conflito de versão, estado ou idempotência
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    PolicyViolation:
+      description: Requisição válida, porém bloqueada por política ou regra de negócio
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
     TooManyRequests:
-      description: Rate limit exceeded
+      description: Quota ou rate limit excedido
+      headers:
+        Retry-After:
+          schema: {type: integer}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
     InternalError:
-      description: Internal platform error
+      description: Erro interno sem exposição de detalhes sensíveis
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+
   schemas:
     AgentStatus:
       type: string
@@ -428,336 +521,264 @@ components:
     RiskClassification:
       type: string
       enum: [LOW, MEDIUM, HIGH, CRITICAL]
+    DataClassification:
+      type: string
+      enum: [PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED]
     Agent:
       type: object
-      required: [agentId, name, version, owner, status, riskClassification]
+      required: [agentId, name, version, owner, status, riskClassification, modelPolicy]
       properties:
-        agentId:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        version:
-          type: string
-        owner:
-          type: string
-        businessUnit:
-          type: string
-        status:
-          $ref: '#/components/schemas/AgentStatus'
-        riskClassification:
-          $ref: '#/components/schemas/RiskClassification'
-        modelPolicy:
-          $ref: '#/components/schemas/ModelPolicy'
+        agentId: {type: string}
+        name: {type: string}
+        description: {type: string}
+        version: {type: string}
+        owner: {type: string}
+        businessUnit: {type: string}
+        status: {$ref: '#/components/schemas/AgentStatus'}
+        riskClassification: {$ref: '#/components/schemas/RiskClassification'}
+        modelPolicy: {$ref: '#/components/schemas/ModelPolicy'}
         allowedTools:
           type: array
-          items:
-            type: string
+          items: {type: string}
         knowledgeBaseIds:
           type: array
-          items:
-            type: string
+          items: {type: string}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
     CreateAgentRequest:
       type: object
-      required: [name, version, owner, instructions, modelPolicy]
+      additionalProperties: false
+      required: [agentId, name, version, owner, instructions, riskClassification, modelPolicy]
       properties:
-        name:
-          type: string
-        version:
-          type: string
-        owner:
-          type: string
-        businessUnit:
-          type: string
-        instructions:
-          type: string
-        modelPolicy:
-          $ref: '#/components/schemas/ModelPolicy'
+        agentId: {type: string}
+        name: {type: string}
+        version: {type: string}
+        owner: {type: string}
+        businessUnit: {type: string}
+        instructions: {type: string, minLength: 1}
+        riskClassification: {$ref: '#/components/schemas/RiskClassification'}
+        modelPolicy: {$ref: '#/components/schemas/ModelPolicy'}
         allowedTools:
           type: array
-          items:
-            type: string
+          items: {type: string}
         knowledgeBaseIds:
           type: array
-          items:
-            type: string
+          items: {type: string}
     ModelPolicy:
       type: object
-      required: [provider, modelId, maxInputTokens, maxOutputTokens, temperature]
+      additionalProperties: false
+      required: [capability, maxInputTokens, maxOutputTokens, temperature]
       properties:
-        provider:
-          type: string
-          example: bedrock
-        modelId:
-          type: string
-          example: anthropic.claude-3-5-sonnet
-        maxInputTokens:
-          type: integer
-        maxOutputTokens:
-          type: integer
-        temperature:
-          type: number
-          minimum: 0
-          maximum: 2
+        capability: {type: string, enum: [TEXT_GENERATION, EMBEDDING, MULTIMODAL]}
+        preferredModels:
+          type: array
+          items: {type: string}
+        maxInputTokens: {type: integer, minimum: 1}
+        maxOutputTokens: {type: integer, minimum: 1}
+        temperature: {type: number, minimum: 0, maximum: 2}
+        maxCostUsd: {type: number, minimum: 0}
+        allowedRegions:
+          type: array
+          items: {type: string}
     AgentListResponse:
       type: object
-      required: [items, page, pageSize, total]
+      required: [items]
       properties:
         items:
           type: array
-          items:
-            $ref: '#/components/schemas/Agent'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        total:
-          type: integer
+          items: {$ref: '#/components/schemas/Agent'}
+        nextPageToken: {type: [string, 'null']}
     AgentInvokeRequest:
       type: object
+      additionalProperties: false
       required: [input, channel, sessionId]
       properties:
-        input:
-          type: string
-          minLength: 1
-        channel:
-          type: string
-        sessionId:
-          type: string
+        input: {type: string, minLength: 1, maxLength: 50000}
+        channel: {type: string}
+        sessionId: {type: string}
+        executionMode: {type: string, enum: [SYNC, ASYNC], default: SYNC}
         context:
           type: object
           additionalProperties: true
     AgentInvokeResponse:
       type: object
-      required: [conversationId, messageId, answer, evaluationStatus]
+      required: [conversationId, messageId, answer, evaluationStatus, executionStatus]
       properties:
-        conversationId:
-          type: string
-        messageId:
-          type: string
-        answer:
-          type: string
+        conversationId: {type: string}
+        messageId: {type: string}
+        answer: {type: string}
+        executionStatus: {type: string, enum: [SUCCESS, PARTIAL, FAILED, BLOCKED]}
         citations:
           type: array
-          items:
-            $ref: '#/components/schemas/Citation'
+          items: {$ref: '#/components/schemas/Citation'}
         toolCalls:
           type: array
-          items:
-            $ref: '#/components/schemas/ToolCall'
-        tokenUsage:
-          $ref: '#/components/schemas/TokenUsage'
-        evaluationStatus:
-          type: string
-          enum: [queued, approved, warning, rejected, skipped]
+          items: {$ref: '#/components/schemas/ToolCall'}
+        tokenUsage: {$ref: '#/components/schemas/TokenUsage'}
+        evaluationStatus: {type: string, enum: [QUEUED, APPROVED, WARNING, REJECTED, SKIPPED]}
+    AcceptedExecution:
+      type: object
+      required: [executionId, status]
+      properties:
+        executionId: {type: string}
+        status: {type: string, enum: [QUEUED, RUNNING]}
+        statusUri: {type: string, format: uri}
     Citation:
       type: object
+      required: [sourceId, title, chunkId, score]
       properties:
-        sourceId:
-          type: string
-        title:
-          type: string
-        uri:
-          type: string
-        chunkId:
-          type: string
-        score:
-          type: number
+        sourceId: {type: string}
+        title: {type: string}
+        uri: {type: string}
+        chunkId: {type: string}
+        score: {type: number, minimum: 0, maximum: 1}
+        dataClassification: {$ref: '#/components/schemas/DataClassification'}
     ToolCall:
       type: object
+      required: [toolName, toolVersion, status]
       properties:
-        toolName:
-          type: string
-        toolVersion:
-          type: string
-        status:
-          type: string
-          enum: [SUCCESS, FAILED, BLOCKED]
-        latencyMs:
-          type: integer
+        toolName: {type: string}
+        toolVersion: {type: string}
+        status: {type: string, enum: [SUCCESS, FAILED, BLOCKED, PARTIAL]}
+        latencyMs: {type: integer, minimum: 0}
+        operationId: {type: string}
     TokenUsage:
       type: object
       properties:
-        inputTokens:
-          type: integer
-        outputTokens:
-          type: integer
-        totalCostUsd:
-          type: number
+        inputTokens: {type: integer, minimum: 0}
+        outputTokens: {type: integer, minimum: 0}
+        totalCostUsd: {type: number, minimum: 0}
+        currency: {type: string, const: USD}
+    GovernanceSubmissionRequest:
+      type: object
+      required: [agentVersion, riskClassification, evidence]
+      properties:
+        agentVersion: {type: string}
+        riskClassification: {$ref: '#/components/schemas/RiskClassification'}
+        evidence:
+          type: array
+          minItems: 1
+          items: {type: string}
+        notes: {type: string}
+    GovernanceDecisionRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: {type: string, minLength: 10}
+        conditions:
+          type: array
+          items: {type: string}
+    GovernanceDecision:
+      type: object
+      required: [approvalId, agentId, decision, riskClassification]
+      properties:
+        approvalId: {type: string}
+        agentId: {type: string}
+        decision: {type: string, enum: [PENDING, APPROVED, REJECTED]}
+        riskClassification: {$ref: '#/components/schemas/RiskClassification'}
+        decidedBy: {type: [string, 'null']}
+        decidedAt: {type: [string, 'null'], format: date-time}
     PublishAgentRequest:
       type: object
       required: [approvalId]
       properties:
-        approvalId:
-          type: string
-        releaseNotes:
-          type: string
+        approvalId: {type: string}
+        releaseNotes: {type: string}
     IngestDocumentRequest:
       type: object
       required: [documentId, sourceSystem, uri, classification]
       properties:
-        documentId:
-          type: string
-        sourceSystem:
-          type: string
-        uri:
-          type: string
-        title:
-          type: string
-        classification:
-          type: string
-          enum: [PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED]
+        documentId: {type: string}
+        sourceSystem: {type: string}
+        uri: {type: string}
+        title: {type: string}
+        classification: {$ref: '#/components/schemas/DataClassification'}
+        checksum: {type: string}
         metadata:
           type: object
           additionalProperties: true
     IngestDocumentResponse:
       type: object
+      required: [ingestionId, status]
       properties:
-        ingestionId:
-          type: string
-        status:
-          type: string
-          enum: [QUEUED, INGESTING, INDEXED, FAILED]
+        ingestionId: {type: string}
+        status: {type: string, enum: [QUEUED, QUARANTINED, INGESTING, INDEXED, FAILED]}
     KnowledgeSearchRequest:
       type: object
       required: [query]
       properties:
-        query:
-          type: string
-        topK:
-          type: integer
-          default: 5
+        query: {type: string, minLength: 1}
+        topK: {type: integer, minimum: 1, maximum: 50, default: 5}
         filters:
           type: object
           additionalProperties: true
     KnowledgeSearchResponse:
       type: object
+      required: [results]
       properties:
         results:
           type: array
-          items:
-            $ref: '#/components/schemas/Citation'
+          items: {$ref: '#/components/schemas/Citation'}
     SessionMemory:
       type: object
+      required: [sessionId, classification, expiresAt]
       properties:
-        sessionId:
-          type: string
+        sessionId: {type: string}
         facts:
           type: array
-          items:
-            type: object
-            additionalProperties: true
+          items: {type: object, additionalProperties: true}
         preferences:
           type: object
           additionalProperties: true
-        updatedAt:
-          type: string
-          format: date-time
+        classification: {$ref: '#/components/schemas/DataClassification'}
+        expiresAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
     UpdateMemoryRequest:
       type: object
+      required: [classification, ttlSeconds]
       properties:
         facts:
           type: array
-          items:
-            type: object
-            additionalProperties: true
+          items: {type: object, additionalProperties: true}
         preferences:
           type: object
           additionalProperties: true
-    GovernanceSubmissionRequest:
-      type: object
-      required: [agentVersion, riskClassification, evidence]
-      properties:
-        agentVersion:
-          type: string
-        riskClassification:
-          $ref: '#/components/schemas/RiskClassification'
-        evidence:
-          type: array
-          items:
-            type: string
-        notes:
-          type: string
-    GovernanceDecisionRequest:
-      type: object
-      required: [decision, reason]
-      properties:
-        decision:
-          type: string
-          enum: [APPROVED, REJECTED]
-        reason:
-          type: string
-        conditions:
-          type: array
-          items:
-            type: string
-    GovernanceDecision:
-      type: object
-      properties:
-        approvalId:
-          type: string
-        agentId:
-          type: string
-        decision:
-          type: string
-          enum: [PENDING, APPROVED, REJECTED]
-        riskClassification:
-          $ref: '#/components/schemas/RiskClassification'
-        decidedBy:
-          type: string
-        decidedAt:
-          type: string
-          format: date-time
+        classification: {$ref: '#/components/schemas/DataClassification'}
+        ttlSeconds: {type: integer, minimum: 60, maximum: 31536000}
+        consentReference: {type: string}
     CreateEvaluationRequest:
       type: object
       required: [agentId, datasetId, evaluationType]
       properties:
-        agentId:
-          type: string
-        datasetId:
-          type: string
-        evaluationType:
-          type: string
-          enum: [REGRESSION, SAFETY, GROUNDEDNESS, LATENCY, COST]
-        baselineVersion:
-          type: string
+        agentId: {type: string}
+        datasetId: {type: string}
+        evaluationType: {type: string, enum: [REGRESSION, SAFETY, GROUNDEDNESS, RETRIEVAL, LATENCY, COST]}
+        baselineVersion: {type: string}
     Evaluation:
       type: object
+      required: [evaluationId, agentId, status]
       properties:
-        evaluationId:
-          type: string
-        agentId:
-          type: string
-        status:
-          type: string
-          enum: [QUEUED, RUNNING, APPROVED, WARNING, REJECTED, FAILED]
+        evaluationId: {type: string}
+        agentId: {type: string}
+        status: {type: string, enum: [QUEUED, RUNNING, APPROVED, WARNING, REJECTED, FAILED]}
         metrics:
           type: object
-          properties:
-            groundedness:
-              type: number
-            relevance:
-              type: number
-            hallucinationRisk:
-              type: number
-            toxicity:
-              type: number
-            p95LatencyMs:
-              type: integer
-            estimatedCostUsd:
-              type: number
-    ErrorResponse:
+          additionalProperties: {type: number}
+    Problem:
       type: object
-      required: [code, message, correlationId]
+      required: [type, title, status, correlationId]
       properties:
-        code:
-          type: string
-        message:
-          type: string
-        correlationId:
-          type: string
-        details:
+        type: {type: string, format: uri}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+        instance: {type: string}
+        code: {type: string}
+        correlationId: {type: string}
+        violations:
           type: array
           items:
-            type: string
+            type: object
+            properties:
+              field: {type: string}
+              reason: {type: string}

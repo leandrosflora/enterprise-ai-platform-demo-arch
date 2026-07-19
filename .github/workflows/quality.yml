@@ -1,0 +1,64 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  contracts-and-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install validation dependencies
+        run: pip install pyyaml mkdocs-material
+      - name: Validate canonical contracts
+        run: python scripts/validate_contracts.py
+      - name: Validate documentation integrity
+        run: python scripts/validate_docs.py
+      - name: Lint OpenAPI and AsyncAPI
+        run: |
+          npm install --global @stoplight/spectral-cli @asyncapi/cli@6.0.2
+          spectral lint -r .spectral.yaml docs/contracts/openapi.yaml
+          spectral lint -r .spectral-asyncapi.yaml docs/contracts/async-api.yaml
+          asyncapi validate docs/contracts/async-api.yaml
+      - name: Check PlantUML
+        run: bash scripts/render_diagrams.sh
+      - name: Build documentation
+        run: mkdocs build
+      - name: Check documentation links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --no-progress --exclude-path .git './**/*.md'
+          fail: true
+
+  vertical-slice:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install demo dependencies
+        run: pip install -r samples/vertical-slice/app/requirements.txt
+      - name: Compile Python
+        run: python -m compileall -q samples/vertical-slice/app
+      - name: Run tests
+        env:
+          PYTHONPATH: samples/vertical-slice
+        run: pytest -q samples/vertical-slice/tests
+      - name: Validate compose
+        run: docker compose -f samples/vertical-slice/docker-compose.yml config --quiet
+      - name: Build demo image
+        run: docker build -t enterprise-ai-platform-demo:test samples/vertical-slice/app

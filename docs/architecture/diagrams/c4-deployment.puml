@@ -1,38 +1,132 @@
 @startuml
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
 
-Deployment_Node(aws,"AWS") {
+!include <C4/C4_Deployment>
 
-Deployment_Node(edge,"Edge") {
-Container(route53,"Route53")
-Container(cloudfront,"CloudFront")
-Container(waf,"WAF")
+LAYOUT_WITH_LEGEND()
+title Enterprise AI Platform - AWS Deployment Reference
+
+Deployment_Node(internet, "Internet / Corporate Network") {
+  Deployment_Node(dns, "DNS") {
+    Container(route53, "Route 53", "DNS")
+  }
 }
 
-Deployment_Node(eks,"Amazon EKS") {
-Container(agentGateway,"Agent Gateway")
-Container(agentRuntime,"Agent Runtime")
-Container(knowledgeService,"Knowledge Service")
-Container(memoryService,"Memory Service")
-Container(governanceService,"Governance Service")
-Container(evaluationService,"Evaluation Service")
-Container(agentRegistry,"Agent Registry")
-Container(mcpRegistry,"MCP Registry")
+Deployment_Node(awsOrg, "AWS Organization") {
+
+  Deployment_Node(securityAccount, "Security / Shared Services Account") {
+    Container(identityCenter, "IAM Identity Center / IdP", "Identity")
+    Container(securityLake, "Security Lake / SIEM", "Security telemetry")
+    Container(ecr, "Amazon ECR", "Signed container images")
+  }
+
+  Deployment_Node(workloadAccount, "AI Platform Workload Account") {
+
+    Deployment_Node(edge, "Edge") {
+      Container(cloudfront, "CloudFront", "CDN")
+      Container(waf, "AWS WAF", "Web Application Firewall")
+      Container(alb, "Application Load Balancer", "Ingress")
+    }
+
+    Deployment_Node(vpc, "VPC - 3 Availability Zones") {
+
+      Deployment_Node(publicSubnets, "Public Subnets") {
+        Container(nat, "NAT Gateway per AZ", "Controlled egress")
+      }
+
+      Deployment_Node(privateAppSubnets, "Private Application Subnets") {
+        Deployment_Node(eks, "Amazon EKS") {
+
+          Deployment_Node(controlNamespace, "Namespace: control-plane") {
+            Container(agentRegistry, "Agent Registry", ".NET")
+            Container(governanceService, "Governance Service", ".NET")
+            Container(evaluationService, "Evaluation Service", ".NET/Python")
+            Container(mcpRegistry, "MCP Registry", ".NET")
+            Container(policyAdmin, "Policy Administration", "OPA/Cedar")
+            Container(modelCatalog, "Model Catalog", ".NET")
+          }
+
+          Deployment_Node(dataNamespace, "Namespace: data-plane") {
+            Container(agentGateway, "Agent Gateway", ".NET")
+            Container(agentRuntime, "Agent Runtime", ".NET")
+            Container(policyDecision, "Policy Decision Point", "OPA/Cedar")
+            Container(modelGateway, "Model Gateway", ".NET")
+            Container(knowledgeService, "Knowledge Service", ".NET")
+            Container(memoryService, "Memory Service", ".NET")
+            Container(mcpExecution, "MCP Execution", ".NET/MCP")
+          }
+
+          Deployment_Node(opsNamespace, "Namespace: platform-ops") {
+            Container(otelCollector, "OpenTelemetry Collector", "Telemetry gateway")
+            Container(externalSecrets, "External Secrets Operator", "Secret synchronization")
+            Container(karpenter, "Karpenter / HPA", "Autoscaling")
+          }
+        }
+      }
+
+      Deployment_Node(privateDataSubnets, "Private Data Subnets") {
+        ContainerDb(rds, "Amazon Aurora PostgreSQL", "Multi-AZ metadata store")
+        ContainerDb(opensearch, "Amazon OpenSearch", "Multi-AZ vector and hybrid search")
+        ContainerDb(documentDb, "MongoDB Atlas / DocumentDB", "Memory store")
+        ContainerDb(redis, "ElastiCache Redis", "Cache and rate limits")
+        ContainerQueue(msk, "Amazon MSK", "Multi-AZ event backbone")
+      }
+
+      Deployment_Node(vpcEndpoints, "VPC Endpoints") {
+        Container(bedrockEndpoint, "Bedrock Runtime Endpoint", "PrivateLink")
+        Container(s3Endpoint, "S3 Gateway Endpoint", "Private access")
+        Container(ecrEndpoint, "ECR Endpoints", "Private image pull")
+        Container(secretsEndpoint, "Secrets Manager Endpoint", "Private secret access")
+        Container(otelEndpoint, "Observability Endpoint", "OTLP/private ingress")
+      }
+    }
+
+    ContainerDb(s3, "Amazon S3", "Documents, evidence, backups and evaluation datasets")
+    Container(secrets, "AWS Secrets Manager", "Provider and integration secrets")
+    Container(kms, "AWS KMS", "Encryption keys")
+    System_Ext(bedrock, "Amazon Bedrock", "Approved foundation models")
+    System_Ext(externalProviders, "External Model Providers", "Allowlisted egress only")
+    System_Ext(observability, "Observability Backend", "Metrics, logs, traces and alerting")
+  }
 }
 
-ContainerDb(rds,"PostgreSQL RDS")
-ContainerDb(opensearch,"OpenSearch")
-ContainerDb(mongo,"MongoDB")
-ContainerDb(redis,"Redis")
-ContainerQueue(msk,"Amazon MSK")
-System_Ext(bedrock,"Amazon Bedrock")
-}
+Rel(route53, cloudfront, "Resolves")
+Rel(cloudfront, waf, "Protected by")
+Rel(waf, alb, "Forwards approved traffic")
+Rel(alb, agentGateway, "HTTPS")
 
-Rel(agentRuntime,bedrock,"Inference")
-Rel(agentRuntime,opensearch,"RAG")
-Rel(agentRuntime,mongo,"Memory")
-Rel(agentRuntime,msk,"Events")
-Rel(governanceService,rds,"Metadata")
-Rel(agentRegistry,rds,"Versions")
+Rel(agentGateway, identityCenter, "OIDC")
+Rel(agentGateway, agentRuntime, "mTLS")
+Rel(agentRuntime, policyDecision, "Policy decision")
+Rel(agentRuntime, modelGateway, "Inference request")
+Rel(agentRuntime, knowledgeService, "Retrieval")
+Rel(agentRuntime, memoryService, "Memory")
+Rel(agentRuntime, mcpExecution, "MCP")
+
+Rel(modelGateway, bedrockEndpoint, "Private inference")
+Rel(bedrockEndpoint, bedrock, "AWS backbone")
+Rel(modelGateway, externalProviders, "TLS through controlled egress")
+Rel(privateAppSubnets, nat, "Allowlisted egress")
+
+Rel(agentRegistry, rds, "Metadata")
+Rel(governanceService, rds, "Decisions and evidence index")
+Rel(knowledgeService, opensearch, "Vector search")
+Rel(memoryService, documentDb, "Memory")
+Rel(agentGateway, redis, "Rate limits")
+Rel(policyDecision, redis, "Policy cache")
+Rel(agentRuntime, msk, "Events")
+Rel(modelGateway, msk, "Usage events")
+
+Rel(externalSecrets, secrets, "Reads via IRSA")
+Rel(secrets, kms, "Encrypted by")
+Rel(rds, kms, "Encrypted by")
+Rel(opensearch, kms, "Encrypted by")
+Rel(s3, kms, "Encrypted by")
+
+Rel(otelCollector, otelEndpoint, "OTLP")
+Rel(otelEndpoint, observability, "Private export")
+Rel(observability, securityLake, "Security findings")
+Rel(eks, ecr, "Pulls signed images")
+Rel(knowledgeService, s3Endpoint, "Reads approved documents")
+Rel(s3Endpoint, s3, "Private access")
 
 @enduml

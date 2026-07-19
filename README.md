@@ -1,258 +1,143 @@
-# Enterprise AI Platform - Arquitetura de Referência
+# Enterprise AI Platform — Arquitetura de Referência
 
-> Arquitetura de referência para uma Plataforma Corporativa de IA cobrindo Agentic AI, MCP, RAG, Memória, Governança, Avaliação, Observabilidade, Segurança e FinOps.
+[![Quality](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/quality.yml/badge.svg)](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/quality.yml)
+[![Docs](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/docs.yml/badge.svg)](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/docs.yml)
 
----
+Arquitetura de referência para projetar, governar e operar uma plataforma corporativa de IA com **agentes**, **RAG**, **memória**, **MCP**, **governança**, **avaliação**, **observabilidade**, **segurança** e **FinOps**.
 
-## Visão Geral
+O repositório contém dois tipos de artefato:
 
-Este repositório demonstra como projetar, governar e operar uma Plataforma Corporativa de IA em escala empresarial.
+- **Arquitetura de referência:** princípios, C4, ADRs, contratos, controles e runbooks.
+- **Vertical slice executável:** uma demo mínima que percorre cadastro, governança, publicação e invocação de um agente, com RAG simulado, tool call, eventos e telemetria.
 
-Capacidades abordadas:
+## Visão da plataforma
 
-- Plataforma de Agentes
-- Plataforma de Conhecimento
-- Plataforma de Memória
-- Plataforma MCP
-- Plataforma de Governança
-- Plataforma de Avaliação
-- Plataforma de Observabilidade
-- Plataforma de FinOps
+```mermaid
+flowchart LR
+    U[Usuário / Canal] --> G[Agent Gateway]
+    G --> R[Agent Runtime]
+    R --> P[Policy Enforcement]
+    R --> K[Knowledge Service]
+    R --> M[Memory Service]
+    R --> T[MCP Tools]
+    R --> MG[Model Gateway]
+    MG --> FM[Foundation Models]
+    R --> E[Event Backbone]
+    E --> A[Audit]
+    E --> EV[Evaluation]
+    E --> B[FinOps]
 
----
+    CP[Control Plane] --> R
+    CP --> P
+    CP --> MG
+```
 
-# Mapa da Documentação
+## Quickstart
 
-## Arquitetura
+### Pré-requisitos
 
-### Princípios
+- Docker Engine 24+
+- Docker Compose v2
+- `curl`
 
-- docs/architecture/principles/principles.md
+### Subir a demo
 
-### Requisitos Não Funcionais
+```bash
+cd samples/vertical-slice
+docker compose up --build
+```
 
-- docs/architecture/non-functional-requirements.md
+Em outro terminal:
 
-### Modelo C4
+```bash
+bash scripts/demo.sh
+```
 
-- docs/architecture/diagrams/c4-context.puml
-- docs/architecture/diagrams/c4-container.puml
-- docs/architecture/diagrams/c4-component-agent-runtime.puml
-- docs/architecture/diagrams/c4-component-knowledge-service.puml
-- docs/architecture/diagrams/c4-component-governance-service.puml
-- docs/architecture/diagrams/c4-deployment.puml
+A demo executa:
 
-### Diagramas de Sequência
+1. cadastro do agente `policy-assistant`;
+2. submissão e aprovação de governança;
+3. publicação da versão;
+4. invocação com resposta citada;
+5. publicação de eventos;
+6. exposição de métricas e traces.
 
-- docs/architecture/diagrams/sequences/agent-invocation.puml
-- docs/architecture/diagrams/sequences/rag-query.puml
-- docs/architecture/diagrams/sequences/mcp-tool-execution.puml
-- docs/architecture/diagrams/sequences/agent-publishing.puml
+Endpoints locais:
 
-### Event Storming
-
-- docs/architecture/diagrams/event-storming.md
-
----
-
-## Domínios
-
-- docs/domains/agent-platform.md
-- docs/domains/knowledge-platform.md
-- docs/domains/memory-platform.md
-- docs/domains/mcp-platform.md
-- docs/domains/governance-platform.md
-- docs/domains/evaluation-platform.md
-- docs/domains/observability-platform.md
-- docs/domains/finops-platform.md
-
----
-
-## Serviços
-
-- docs/services/agent-gateway.md
-- docs/services/agent-runtime.md
-- docs/services/agent-registry.md
-- docs/services/knowledge-service.md
-- docs/services/memory-service.md
-- docs/services/mcp-registry.md
-- docs/services/governance-service.md
-- docs/services/evaluation-service.md
-- docs/services/audit-service.md
-- docs/services/billing-service.md
-
----
-
-## Contratos
-
-- docs/contracts/apis.md
-- docs/contracts/openapi.yaml
-- docs/contracts/events.md
-- docs/contracts/async-api.yaml
-- docs/contracts/data-stores.md
-- docs/contracts/mcp-contracts.md
-
----
-
-## Governança
-
-- docs/governance/approval-workflow.md
-- docs/governance/ai-catalog.md
-- docs/governance/ai-risk-framework.md
-- docs/governance/model-lifecycle.md
-
----
-
-## Segurança
-
-- docs/security/authentication.md
-- docs/security/authorization.md
-- docs/security/threat-model.md
-- docs/security/lgpd.md
-
----
-
-## Observabilidade
-
-- docs/observability/tracing.md
-- docs/observability/dashboards.md
-
----
-
-## FinOps
-
-- docs/finops/token-costs.md
-
----
-
-## Runbooks
-
-- docs/runbooks/onboarding-agent.md
-- docs/runbooks/onboarding-mcp.md
-
----
-
-## Integrações
-
-- docs/integrations/foundation-models.md
-- docs/integrations/identity-provider.md
-- docs/integrations/corporate-systems.md
-- docs/integrations/observability-stack.md
-- docs/integrations/external-tools.md
-
----
-
-## Exemplos End-to-End
-
-- docs/examples/end-to-end-agent-rag-mcp.md
-- docs/examples/prompt-example.md
-- docs/examples/tool-call-example.md
-- docs/examples/kafka-event-example.md
-- docs/examples/trace-example.md
-- docs/examples/evaluation-example.md
-
----
-
-## Arquiteturas de Referência
-
-- docs/reference-architectures/customer-service-agent.md
-- docs/reference-architectures/internal-copilot.md
-- docs/reference-architectures/document-analysis-agent.md
-- docs/reference-architectures/backoffice-automation-agent.md
-- docs/reference-architectures/conversational-analytics.md
-
----
-
-## ADRs
-
-- ADR-001 Estratégia de Agent Runtime
-- ADR-002 Seleção de Banco Vetorial
-- ADR-003 Estratégia MCP
-- ADR-004 Estratégia de Observabilidade
-- ADR-005 Framework de Avaliação
-
----
-
-# Stack Tecnológico de Referência
-
-## Plataforma
-
-- AWS
-- Kubernetes (EKS)
-- Amazon MSK
-- Amazon Bedrock
-- OpenTelemetry
-
-## Dados
-
-- PostgreSQL
-- MongoDB
-- OpenSearch
-- Redis
-
-## Desenvolvimento
-
-- .NET
-- React
-- Kafka
-- MCP
-
----
-
-# Artefatos Implementáveis
-
-| Artefato | Finalidade |
+| Recurso | URL |
 |---|---|
-| `docs/contracts/openapi.yaml` | Contratos HTTP com endpoints, schemas, scopes, paginação e erros padronizados. |
-| `docs/contracts/async-api.yaml` | Contratos assíncronos Kafka. |
-| `docs/contracts/mcp-contracts.md` | Contratos MCP com JSON Schemas, segurança, auditoria e runtime policy. |
-| `docs/security/authorization.md` | Matriz papel x escopo x recurso x condição. |
-| `docs/governance/ai-risk-framework.md` | Matriz risco x controle x evidência x owner. |
-| `docs/observability/tracing.md` | Spans, atributos, métricas, SLOs, alertas e logs estruturados. |
-| `docs/examples/end-to-end-agent-rag-mcp.md` | Fluxos completos Agent + RAG + MCP. |
+| API | `http://localhost:8080` |
+| Swagger | `http://localhost:8080/docs` |
+| Jaeger | `http://localhost:16686` |
+| Prometheus | `http://localhost:9090` |
+| Redpanda Console | `http://localhost:8081` |
 
----
+## Estado dos artefatos
 
-# Roadmap de Implementação
+| Área | Status | Fonte principal |
+|---|---|---|
+| APIs HTTP | Implementável e validada em CI | `docs/contracts/openapi.yaml` |
+| Eventos Kafka | Implementável e validada em CI | `docs/contracts/async-api.yaml` |
+| Convenções de eventos | Normativa | `docs/contracts/events.md` |
+| C4 | Fonte PlantUML validada em CI | `docs/architecture/diagrams/` |
+| Governança e risco | Referência operacional | `docs/governance/` |
+| Observabilidade e SLOs | Referência operacional | `docs/observability/` |
+| Demo executável | Vertical slice, não produção | `samples/vertical-slice/` |
 
-## Fase 1
+## Mapa da documentação
 
-Fundação da Plataforma
+### Arquitetura
 
-## Fase 2
+- [Princípios arquiteturais](docs/architecture/principles/principles.md)
+- [Requisitos não funcionais](docs/architecture/non-functional-requirements.md)
+- [Control plane e data plane](docs/architecture/control-plane-data-plane.md)
+- [Modelo C4](docs/architecture/diagrams/)
+- [ADRs](docs/adr/)
 
-Plataforma de Conhecimento e RAG Corporativo
+### Domínios e serviços
 
-## Fase 3
+- [Domínios](docs/domains/)
+- [Serviços](docs/services/)
+- [Model Gateway](docs/services/model-gateway.md)
 
-MCP e Integrações Corporativas
+### Contratos
 
-## Fase 4
+- [OpenAPI](docs/contracts/openapi.yaml)
+- [AsyncAPI](docs/contracts/async-api.yaml)
+- [Convenções de eventos](docs/contracts/events.md)
+- [Contratos MCP](docs/contracts/mcp-contracts.md)
+- [Data stores](docs/contracts/data-stores.md)
 
-Governança e Avaliação
+### Governança, segurança e operação
 
-## Fase 5
+- [AI Risk Framework](docs/governance/ai-risk-framework.md)
+- [Autorização](docs/security/authorization.md)
+- [Threat Model](docs/security/threat-model.md)
+- [Tracing e SLOs](docs/observability/tracing.md)
+- [Runbooks](docs/runbooks/)
+- [Roadmap](docs/roadmap/implementation-roadmap.md)
 
-Escala, Marketplace e FinOps
+## Qualidade automatizada
 
-Detalhes completos:
+A pipeline `quality.yml` executa:
 
-- docs/roadmap/implementation-roadmap.md
+- lint de OpenAPI e AsyncAPI com Spectral;
+- validações semânticas de contratos;
+- verificação de links e integridade documental;
+- compilação dos diagramas PlantUML;
+- testes da vertical slice;
+- validação do Docker Compose;
+- build do site MkDocs.
 
----
+## Limites da demo
 
-# Público-Alvo
+A vertical slice usa armazenamento em memória e respostas determinísticas. Ela prova o fluxo arquitetural e os contratos; não substitui uma implementação de produção. Persistência, IAM corporativo, KMS, políticas de rede, alta disponibilidade e integrações reais devem seguir os artefatos de arquitetura e implantação.
 
-- Arquitetos Corporativos
-- Arquitetos de Soluções
-- Arquitetos de IA
-- Engenheiros de Plataforma
-- Líderes Técnicos
-- Times de Governança
-- Times de Segurança
+## Contribuição e segurança
 
----
+- [Como contribuir](CONTRIBUTING.md)
+- [Política de segurança](SECURITY.md)
 
-# Licença
+## Licença
 
-MIT
+MIT.

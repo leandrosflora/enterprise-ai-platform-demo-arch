@@ -1,0 +1,19 @@
+{
+  "agentId": "policy-assistant",
+  "name": "Assistente de Políticas Internas",
+  "version": "1.0.0",
+  "owner": "governance-team",
+  "businessUnit": "corporate-governance",
+  "instructions": "Responda somente com base em políticas aprovadas e sempre retorne citações.",
+  "riskClassification": "MEDIUM",
+  "modelPolicy": {
+    "capability": "TEXT_GENERATION",
+    "preferredModels": ["demo.deterministic-model"],
+    "maxInputTokens": 8000,
+    "maxOutputTokens": 1200,
+    "temperature": 0.2,
+    "maxCostUsd": 0.05
+  },
+  "allowedTools": ["policy-document-search:1.0.0"],
+  "knowledgeBaseIds": ["corporate-policies-kb"]
+}

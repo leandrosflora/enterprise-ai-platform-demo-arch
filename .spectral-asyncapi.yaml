@@ -1,0 +1,31 @@
+rules:
+  asyncapi-version:
+    description: AsyncAPI must use the 3.0 specification.
+    severity: error
+    given: $.asyncapi
+    then:
+      function: pattern
+      functionOptions:
+        match: '^3\.0\.'
+  asyncapi-info-version:
+    description: AsyncAPI documents must declare an API version.
+    severity: error
+    given: $.info.version
+    then:
+      function: truthy
+  asyncapi-channel-address-versioned:
+    description: Kafka channel addresses must include a major version suffix.
+    severity: error
+    given: $.components.channels.*
+    then:
+      field: address
+      function: pattern
+      functionOptions:
+        match: '\.v[0-9]+$'
+  asyncapi-envelope-schema-version:
+    description: Event envelopes must expose schemaVersion.
+    severity: error
+    given: $.components.schemas.EventEnvelope.properties
+    then:
+      field: schemaVersion
+      function: truthy

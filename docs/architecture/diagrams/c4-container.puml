@@ -1,72 +1,99 @@
 @startuml
 
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include <C4/C4_Container>
 
+LAYOUT_WITH_LEGEND()
 title Enterprise AI Platform - Container Diagram
 
 Person(businessUser, "Business User")
 Person(developer, "Developer")
 Person(aiArchitect, "AI Architect")
 
-System_Ext(foundationModels, "Foundation Models", "Bedrock, OpenAI, Anthropic or other LLM providers")
-System_Ext(corporateSystems, "Corporate Systems", "ERP, CRM, Core Banking, Legacy Systems and internal APIs")
-System_Ext(identityProvider, "Identity Provider", "OIDC, SSO, IAM and RBAC")
-System_Ext(observabilityStack, "Observability Stack", "Logs, metrics, traces and dashboards")
+System_Ext(foundationModels, "Foundation Models", "Bedrock, OpenAI, Anthropic e outros provedores aprovados")
+System_Ext(corporateSystems, "Corporate Systems", "ERP, CRM, Core Banking, Legacy e APIs internas")
+System_Ext(identityProvider, "Identity Provider", "OIDC, SSO, IAM e workload identity")
+System_Ext(observabilityStack, "Observability Stack", "Logs, métricas, traces e alertas")
 
 System_Boundary(platform, "Enterprise AI Platform") {
 
-    Container(aiPortal, "AI Portal", "React", "Self-service portal for agents, copilots, governance and operations")
-    Container(agentGateway, "Agent Gateway", ".NET", "Unified entry point for agent invocations, authentication, routing and rate limiting")
-    Container(agentRuntime, "Agent Runtime", ".NET / LangGraph / Semantic Kernel", "Executes and orchestrates agents, prompts, tools and model calls")
-    Container(agentRegistry, "Agent Registry", ".NET", "Catalog, metadata, versioning and lifecycle of agents")
-    Container(mcpRegistry, "MCP Registry", ".NET", "Catalog and discovery of MCP servers and enterprise tools")
-    Container(knowledgeService, "Knowledge Service", ".NET", "Document ingestion, embeddings, vector search and RAG orchestration")
-    Container(memoryService, "Memory Service", ".NET", "Session, short-term, long-term and user profile memory")
-    Container(evaluationService, "Evaluation Service", ".NET", "Evaluates groundedness, relevance, hallucination, toxicity and regression quality")
-    Container(governanceService, "Governance Service", ".NET", "Approval workflow, AI risk management, policy enforcement and lifecycle governance")
-    Container(auditService, "Audit Service", ".NET", "Immutable audit trail for agent usage, tool calls and governance actions")
-    Container(billingService, "Billing Service", ".NET", "FinOps, token tracking, cost allocation, chargeback and showback")
+    Container(aiPortal, "AI Portal", "React", "Self-service para catálogo, testes, governança e operação")
 
-    ContainerDb(postgres, "PostgreSQL", "Relational Database", "Platform metadata, catalog, governance and configuration")
-    ContainerDb(mongo, "MongoDB", "Document Database", "Conversation memory and flexible context storage")
-    ContainerDb(openSearch, "OpenSearch", "Vector Search", "Embeddings, semantic search and knowledge retrieval")
-    ContainerDb(redis, "Redis", "Cache", "Session cache, throttling and short-lived context")
-    ContainerQueue(kafka, "Kafka", "Event Streaming", "Platform events, audit events and async processing")
+    Container_Boundary(controlPlane, "Control Plane") {
+        Container(agentRegistry, "Agent Registry", ".NET", "Catálogo, versões imutáveis e ciclo de vida")
+        Container(governanceService, "Governance Service", ".NET", "Workflow, evidências, segregação de funções e publicação")
+        Container(evaluationService, "Evaluation Service", ".NET / Python", "Datasets, baselines, quality gates e relatórios")
+        Container(mcpRegistry, "MCP Registry", ".NET", "Catálogo e versões aprovadas de tools")
+        Container(policyAdmin, "Policy Administration", "OPA / Cedar / Custom", "Autoria, revisão e publicação de políticas")
+        Container(modelCatalog, "Model Catalog", ".NET", "Allowlist de modelos, regiões, capacidades e restrições")
+    }
+
+    Container_Boundary(dataPlane, "Data Plane") {
+        Container(agentGateway, "Agent Gateway", ".NET", "Autenticação, autorização inicial, rate limit e roteamento")
+        Container(agentRuntime, "Agent Runtime", ".NET / LangGraph / Semantic Kernel", "Orquestra prompts, memória, RAG, tools e modelos")
+        Container(policyDecision, "Policy Decision Point", "OPA / Cedar / Custom", "Decisão de política de baixa latência")
+        Container(modelGateway, "Model Gateway", ".NET", "Roteamento, quotas, guardrails, fallback e telemetria de modelos")
+        Container(knowledgeService, "Knowledge Service", ".NET", "Ingestão, ACL por documento/chunk, embeddings e retrieval")
+        Container(memoryService, "Memory Service", ".NET", "Memória com TTL, consentimento, isolamento e descarte")
+        Container(mcpExecution, "MCP Execution", ".NET / MCP", "Execução de tools com idempotência e auditoria")
+    }
+
+    Container(auditService, "Audit Service", ".NET", "Trilha imutável de decisões e execuções")
+    Container(billingService, "Billing Service", ".NET", "Tokens, custo, quotas, chargeback e showback")
+
+    ContainerDb(postgres, "PostgreSQL", "Relational Database", "Metadados do control plane")
+    ContainerDb(mongo, "MongoDB", "Document Database", "Memória e contexto flexível")
+    ContainerDb(openSearch, "OpenSearch", "Vector Search", "Índices vetoriais e busca híbrida")
+    ContainerDb(redis, "Redis", "Cache", "Sessão, rate limit e políticas publicadas")
+    ContainerQueue(kafka, "Kafka", "Event Streaming", "Eventos versionados, auditoria e processamento assíncrono")
 }
 
-Rel(businessUser, aiPortal, "Uses")
-Rel(developer, aiPortal, "Registers and tests agents")
-Rel(aiArchitect, aiPortal, "Reviews governance and standards")
+Rel(businessUser, aiPortal, "Usa")
+Rel(developer, aiPortal, "Registra e testa agentes")
+Rel(aiArchitect, aiPortal, "Revisa arquitetura e governança")
 
-Rel(aiPortal, agentGateway, "Invokes agents", "HTTPS")
-Rel(aiPortal, agentRegistry, "Manages agent catalog", "HTTPS")
-Rel(aiPortal, governanceService, "Submits approvals", "HTTPS")
+Rel(aiPortal, agentGateway, "Invoca agentes", "HTTPS")
+Rel(aiPortal, agentRegistry, "Gerencia catálogo", "HTTPS")
+Rel(aiPortal, governanceService, "Submete e revisa", "HTTPS")
 
-Rel(agentGateway, identityProvider, "Authenticates and authorizes", "OIDC")
-Rel(agentGateway, agentRuntime, "Routes invocation", "HTTPS")
+Rel(agentGateway, identityProvider, "Valida identidade", "OIDC")
+Rel(agentGateway, policyDecision, "Solicita decisão", "HTTPS/mTLS")
+Rel(agentGateway, agentRuntime, "Encaminha invocação", "HTTPS/mTLS")
 
-Rel(agentRuntime, foundationModels, "Invokes models", "HTTPS")
-Rel(agentRuntime, knowledgeService, "Retrieves knowledge", "HTTPS")
-Rel(agentRuntime, memoryService, "Reads and writes memory", "HTTPS")
-Rel(agentRuntime, mcpRegistry, "Discovers tools", "HTTPS")
-Rel(agentRuntime, corporateSystems, "Executes business tools", "HTTPS / MCP")
-Rel(agentRuntime, evaluationService, "Requests response evaluation", "Async / HTTPS")
+Rel(agentRuntime, agentRegistry, "Carrega versão publicada", "HTTPS/mTLS")
+Rel(agentRuntime, policyDecision, "Avalia agente e contexto", "HTTPS/mTLS")
+Rel(agentRuntime, knowledgeService, "Recupera conhecimento", "HTTPS/mTLS")
+Rel(agentRuntime, memoryService, "Lê e grava memória", "HTTPS/mTLS")
+Rel(agentRuntime, mcpRegistry, "Descobre tools aprovadas", "HTTPS/mTLS")
+Rel(agentRuntime, mcpExecution, "Executa tools", "MCP")
+Rel(agentRuntime, modelGateway, "Solicita inferência", "HTTPS/mTLS")
+Rel(agentRuntime, evaluationService, "Submete avaliação", "Async/HTTPS")
 
-Rel(knowledgeService, openSearch, "Stores and searches embeddings")
-Rel(memoryService, mongo, "Stores context")
-Rel(agentRegistry, postgres, "Stores agent metadata")
-Rel(governanceService, postgres, "Stores governance records")
-Rel(billingService, postgres, "Stores cost allocation data")
-Rel(agentGateway, redis, "Uses cache and rate limits")
+Rel(modelGateway, modelCatalog, "Consulta modelos aprovados", "HTTPS/mTLS")
+Rel(modelGateway, policyDecision, "Avalia modelo, região e budget", "HTTPS/mTLS")
+Rel(modelGateway, foundationModels, "Executa inferência", "HTTPS")
+Rel(mcpExecution, corporateSystems, "Executa operações", "HTTPS/MCP")
 
-Rel(agentRuntime, kafka, "Publishes agent events")
-Rel(knowledgeService, kafka, "Publishes knowledge events")
-Rel(governanceService, kafka, "Publishes governance events")
-Rel(kafka, auditService, "Consumes events")
-Rel(kafka, evaluationService, "Consumes evaluation events")
-Rel(kafka, billingService, "Consumes usage events")
+Rel(policyAdmin, policyDecision, "Publica bundles versionados", "Eventos/HTTPS")
+Rel(governanceService, agentRegistry, "Aprova e publica versões", "HTTPS/Eventos")
 
-Rel(auditService, observabilityStack, "Publishes audit logs and traces")
-Rel(agentRuntime, observabilityStack, "Publishes traces and metrics")
+Rel(agentRegistry, postgres, "Persiste metadados")
+Rel(governanceService, postgres, "Persiste decisões e evidências")
+Rel(modelCatalog, postgres, "Persiste catálogo de modelos")
+Rel(knowledgeService, openSearch, "Indexa e consulta")
+Rel(memoryService, mongo, "Persiste memória")
+Rel(agentGateway, redis, "Rate limit e cache")
+Rel(policyDecision, redis, "Cache de políticas")
+
+Rel(agentRuntime, kafka, "Publica eventos")
+Rel(modelGateway, kafka, "Publica uso e custo")
+Rel(knowledgeService, kafka, "Publica eventos")
+Rel(governanceService, kafka, "Publica eventos")
+Rel(kafka, auditService, "Consome eventos")
+Rel(kafka, evaluationService, "Consome avaliações")
+Rel(kafka, billingService, "Consome uso")
+
+Rel(agentRuntime, observabilityStack, "Exporta telemetria", "OTLP")
+Rel(modelGateway, observabilityStack, "Exporta telemetria", "OTLP")
+Rel(auditService, observabilityStack, "Exporta sinais operacionais")
 
 @enduml

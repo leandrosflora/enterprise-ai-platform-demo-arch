@@ -1,0 +1,72 @@
+site_name: Enterprise AI Platform
+site_description: Arquitetura de referência para plataformas corporativas de IA
+site_url: https://leandrosflora.github.io/enterprise-ai-platform-demo-arch/
+repo_url: https://github.com/leandrosflora/enterprise-ai-platform-demo-arch
+repo_name: leandrosflora/enterprise-ai-platform-demo-arch
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: pt-BR
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+    - search.highlight
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Início: index.md
+  - Arquitetura:
+      - Princípios: architecture/principles/principles.md
+      - Requisitos não funcionais: architecture/non-functional-requirements.md
+      - Control plane e data plane: architecture/control-plane-data-plane.md
+      - Event Storming: architecture/diagrams/event-storming.md
+  - Contratos:
+      - Convenções de eventos: contracts/events.md
+      - APIs: contracts/apis.md
+      - MCP: contracts/mcp-contracts.md
+      - Data stores: contracts/data-stores.md
+  - Governança:
+      - Fluxo de aprovação: governance/approval-workflow.md
+      - AI Risk Framework: governance/ai-risk-framework.md
+      - Catálogo de IA: governance/ai-catalog.md
+      - Ciclo de modelos: governance/model-lifecycle.md
+  - Segurança:
+      - Autenticação: security/authentication.md
+      - Autorização: security/authorization.md
+      - Threat Model: security/threat-model.md
+      - LGPD: security/lgpd.md
+  - Observabilidade:
+      - Tracing e SLOs: observability/tracing.md
+      - Dashboards: observability/dashboards.md
+  - Serviços:
+      - Agent Gateway: services/agent-gateway.md
+      - Agent Runtime: services/agent-runtime.md
+      - Model Gateway: services/model-gateway.md
+      - Knowledge Service: services/knowledge-service.md
+      - Memory Service: services/memory-service.md
+      - Governance Service: services/governance-service.md
+      - Evaluation Service: services/evaluation-service.md
+  - Runbooks:
+      - Onboarding de agente: runbooks/onboarding-agent.md
+      - Onboarding MCP: runbooks/onboarding-mcp.md
+      - Troubleshooting: runbooks/troubleshooting-agent-invocation.md
+  - Roadmap: roadmap/implementation-roadmap.md

@@ -1,160 +1,131 @@
-# Tracing
-
-## Objetivo
-
-Garantir rastreabilidade ponta a ponta das execuções dos agentes, cobrindo invocação, memória, RAG, chamada de modelo, ferramentas MCP, avaliação, auditoria e FinOps.
+# Tracing, Métricas e SLOs
 
 ## Padrão
 
 - OpenTelemetry para traces, métricas e logs correlacionados.
-- `traceId`, `spanId`, `correlationId` e `causationId` obrigatórios em toda fronteira síncrona e assíncrona.
-- Propagação de contexto em HTTP headers e Kafka event envelope.
+- W3C `traceparent` propagado por HTTP e no envelope Kafka.
+- `traceId`, `spanId`, `correlationId`, `causationId` e `tenant.id` nas fronteiras aplicáveis.
 - Logs estruturados em JSON.
+- Dados sensíveis são mascarados antes da exportação.
 
----
-
-## Trace Principal: Agent Invocation
+## Trace principal
 
 ```text
 agent.invocation
   ├─ agent.gateway.authenticate
   ├─ agent.gateway.authorize
   ├─ agent.runtime.load_configuration
-  ├─ agent.runtime.policy_enforcement
+  ├─ policy.evaluate
   ├─ memory.retrieve
   ├─ knowledge.retrieve
+  │   ├─ knowledge.authorize_documents
   │   ├─ knowledge.embedding.generate
   │   └─ knowledge.vector_search
   ├─ prompt.build
-  ├─ model.invoke
+  ├─ model.gateway.authorize
+  ├─ model.gateway.route
+  ├─ model.provider.invoke
+  ├─ model.gateway.guardrail
   ├─ tool.execute
   │   ├─ mcp.registry.discover
+  │   ├─ policy.evaluate_tool
   │   └─ mcp.tool.invoke
   ├─ evaluation.submit
   ├─ event.publish
   └─ audit.record
 ```
 
----
+## Spans obrigatórios
 
-## Spans Obrigatórios
+| Span | Componente | Atributos obrigatórios |
+|---|---|---|
+| `agent.invocation` | Gateway | `agent.id`, `agent.version`, `tenant.id`, `channel`, `workload.class`, `risk.classification` |
+| `agent.gateway.authenticate` | Gateway | `auth.provider`, `auth.result` |
+| `agent.gateway.authorize` | Gateway | `auth.scopes`, `policy.id`, `policy.version`, `policy.decision` |
+| `agent.runtime.load_configuration` | Runtime | `agent.id`, `agent.version`, `registry.cache_hit` |
+| `policy.evaluate` | PDP/PEP | `policy.id`, `policy.version`, `decision`, `reason` |
+| `memory.retrieve` | Memory | `session.id.hash`, `memory.type`, `memory.items_count`, `data.classification` |
+| `memory.write` | Memory | `session.id.hash`, `operation`, `ttl.seconds`, `data.classification` |
+| `knowledge.retrieve` | Knowledge | `knowledge_base.id`, `retrieval.strategy`, `top_k` |
+| `knowledge.authorize_documents` | Knowledge | `candidate.count`, `authorized.count`, `policy.version` |
+| `knowledge.embedding.generate` | Knowledge | `model.id`, `input.tokens` |
+| `knowledge.vector_search` | Knowledge | `vector.index`, `result.count`, `score.max` |
+| `prompt.build` | Runtime | `prompt.template_id`, `context.sources_count`, `input.tokens.estimated` |
+| `model.gateway.authorize` | Model Gateway | `model.capability`, `data.classification`, `policy.decision` |
+| `model.gateway.route` | Model Gateway | `provider.selected`, `model.selected`, `region.selected`, `fallback.rank` |
+| `model.provider.invoke` | Model Gateway | `model.provider`, `model.id`, `input.tokens`, `output.tokens`, `cost.usd` |
+| `model.gateway.guardrail` | Model Gateway | `guardrail.id`, `guardrail.version`, `decision` |
+| `tool.execute` | Runtime | `tool.name`, `tool.version`, `tool.status`, `tool.risk` |
+| `mcp.tool.invoke` | MCP Server | `tool.name`, `idempotency.required`, `operation.id`, `status` |
+| `evaluation.submit` | Evaluation | `evaluation.type`, `dataset.id`, `status` |
+| `event.publish` | Event backbone | `messaging.destination`, `event.type`, `schema.version` |
+| `audit.record` | Audit | `audit.event_type`, `retention.class`, `audit.status` |
 
-| Span | Componente | Quando usar | Atributos obrigatórios |
-|---|---|---|---|
-| `agent.invocation` | Agent Gateway | Span raiz da invocação | `agent.id`, `agent.version`, `tenant.id`, `channel`, `user.id.hash`, `risk.classification` |
-| `agent.gateway.authenticate` | Agent Gateway | Validação JWT/OIDC | `auth.provider`, `auth.result`, `tenant.id` |
-| `agent.gateway.authorize` | Agent Gateway | Validação de escopos | `auth.scopes`, `auth.decision`, `policy.id` |
-| `agent.runtime.load_configuration` | Agent Runtime | Carga de configuração do agente | `agent.id`, `agent.version`, `registry.cache_hit` |
-| `agent.runtime.policy_enforcement` | Agent Runtime | Aplicação de política | `policy.id`, `policy.decision`, `blocked.reason` |
-| `memory.retrieve` | Memory Service | Leitura de memória | `session.id`, `memory.type`, `memory.items_count` |
-| `memory.write` | Memory Service | Atualização de memória | `session.id`, `memory.items_count`, `data.classification` |
-| `knowledge.retrieve` | Knowledge Service | Busca RAG | `knowledge_base.id`, `retrieval.strategy`, `top_k` |
-| `knowledge.embedding.generate` | Knowledge Service | Geração de embedding | `model.provider`, `model.id`, `input.tokens` |
-| `knowledge.vector_search` | Knowledge Service | Busca vetorial/híbrida | `vector.index`, `result.count`, `score.max`, `latency.ms` |
-| `prompt.build` | Agent Runtime | Montagem do prompt | `prompt.template_id`, `input.tokens.estimated`, `context.sources_count` |
-| `model.invoke` | Agent Runtime | Chamada ao LLM | `model.provider`, `model.id`, `input.tokens`, `output.tokens`, `cost.usd`, `latency.ms` |
-| `tool.execute` | Agent Runtime | Execução de ferramenta MCP | `tool.name`, `tool.version`, `tool.status`, `tool.risk`, `latency.ms` |
-| `mcp.registry.discover` | MCP Registry | Descoberta de ferramenta | `tool.name`, `registry.cache_hit`, `policy.decision` |
-| `mcp.tool.invoke` | MCP Server | Chamada à ferramenta | `tool.name`, `tool.version`, `idempotency.required`, `status` |
-| `evaluation.submit` | Evaluation Service | Submissão para avaliação | `evaluation.type`, `evaluation.status`, `dataset.id` |
-| `event.publish` | Platform Events | Publicação Kafka | `messaging.system`, `messaging.destination`, `event.type`, `schema.version` |
-| `audit.record` | Audit Service | Registro auditável | `audit.event_type`, `retention.class`, `audit.status` |
+## Atributos globais
 
----
-
-## Atributos Globais Obrigatórios
-
-| Atributo | Descrição |
+| Atributo | Regra |
 |---|---|
-| `trace.id` | Trace distribuído. |
-| `correlation.id` | Correlação funcional entre requisições e eventos. |
-| `causation.id` | Identificador da ação/evento causador. |
-| `tenant.id` | Tenant/organização. |
-| `business_unit` | Unidade de negócio quando aplicável. |
-| `agent.id` | Identificador do agente. |
-| `agent.version` | Versão do agente. |
-| `session.id` | Sessão conversacional. |
-| `user.id.hash` | Hash do usuário, nunca identificador sensível em claro. |
-| `data.classification` | `PUBLIC`, `INTERNAL`, `CONFIDENTIAL` ou `RESTRICTED`. |
-| `risk.classification` | `LOW`, `MEDIUM`, `HIGH` ou `CRITICAL`. |
+| `tenant.id` | Obrigatório, sem cardinalidade livre. |
+| `business_unit` | Quando aplicável. |
+| `agent.id` e `agent.version` | Obrigatórios em execução de agente. |
+| `session.id.hash` | Hash, nunca sessão sensível em claro. |
+| `user.id.hash` | Hash estável apenas quando necessário. |
+| `data.classification` | `PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`. |
+| `risk.classification` | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`. |
+| `workload.class` | Classe definida nos NFRs. |
 
----
+## Métricas
 
-## Métricas Obrigatórias
+| Métrica | Tipo | Dimensões permitidas |
+|---|---|---|
+| `agent_invocations_total` | Counter | agente, tenant, status |
+| `agent_invocation_duration_seconds` | Histogram | agente, workload, status |
+| `policy_decision_duration_seconds` | Histogram | policy, decisão |
+| `policy_denials_total` | Counter | policy, recurso, motivo controlado |
+| `model_invocations_total` | Counter | provedor, modelo, status |
+| `model_tokens_total` | Counter | provedor, modelo, tipo |
+| `model_cost_usd_total` | Counter | agente, unidade, provedor |
+| `model_fallback_total` | Counter | provedor origem/destino |
+| `tool_executions_total` | Counter | ferramenta, status, risco |
+| `knowledge_retrieval_duration_seconds` | Histogram | base, estratégia |
+| `knowledge_authorization_filtered_total` | Counter | base, classificação |
+| `evaluation_score` | Gauge | agente, dataset, métrica |
+| `dlq_events_total` | Counter | evento, consumidor |
 
-| Métrica | Tipo | Dimensões | Objetivo |
-|---|---|---|---|
-| `agent_invocations_total` | Counter | `agent.id`, `tenant.id`, `status` | Volume e taxa de erro. |
-| `agent_invocation_latency_ms` | Histogram | `agent.id`, `channel`, `risk.classification` | P50/P90/P95/P99 de resposta. |
-| `model_invocations_total` | Counter | `model.provider`, `model.id`, `status` | Uso de modelos. |
-| `model_tokens_total` | Counter | `model.provider`, `model.id`, `token.type` | Tokens de entrada/saída. |
-| `model_cost_usd_total` | Counter | `agent.id`, `business_unit`, `model.provider` | Custo atribuído. |
-| `tool_executions_total` | Counter | `tool.name`, `status`, `risk.classification` | Uso e falha de ferramentas. |
-| `rag_retrieval_latency_ms` | Histogram | `knowledge_base.id`, `strategy` | Latência de recuperação. |
-| `rag_groundedness_score` | Gauge | `agent.id`, `dataset.id` | Qualidade de resposta fundamentada. |
-| `evaluation_failures_total` | Counter | `agent.id`, `evaluation.type` | Falhas de quality gates. |
-| `policy_denials_total` | Counter | `policy.id`, `resource.type`, `reason` | Bloqueios de segurança/governança. |
-| `dlq_events_total` | Counter | `event.type`, `consumer` | Falhas assíncronas. |
+Não usar IDs de usuário, sessão, documento ou correlation ID como labels de métricas.
 
----
-
-## SLOs de Referência
+## SLOs de referência
 
 | Capacidade | SLI | SLO | Janela |
 |---|---|---:|---|
-| Agent Invocation simples | P95 latency | <= 5s | 30 dias |
-| Agent Invocation com RAG | P95 latency | <= 8s | 30 dias |
-| Tool execution | P95 latency | <= 4s | 30 dias |
-| Knowledge retrieval | P95 latency | <= 2s | 30 dias |
-| Agent availability | Success rate | >= 99.5% | 30 dias |
-| Event publishing | Success rate | >= 99.9% | 30 dias |
-| Evaluation processing | P95 completion | <= 2min | 30 dias |
-| Audit recording | Success rate | >= 99.99% | 30 dias |
-| Policy enforcement | Decision latency P95 | <= 100ms | 30 dias |
-
----
+| `INTERACTIVE_SIMPLE` | P95 end-to-end | <= 5 s | 30 dias |
+| `INTERACTIVE_RAG` | P95 end-to-end | <= 8 s | 30 dias |
+| `INTERACTIVE_TOOL` | P95 end-to-end | <= 15 s | 30 dias |
+| Operação assíncrona | P95 de aceite | <= 2 s | 30 dias |
+| Knowledge retrieval | P95 | <= 2 s | 30 dias |
+| Policy decision | P95 | <= 100 ms | 30 dias |
+| Agent Gateway | Disponibilidade | >= 99,95% | 30 dias |
+| Agent Runtime | Disponibilidade | >= 99,9% | 30 dias |
+| Event publishing | Sucesso | >= 99,9% | 30 dias |
+| Audit recording crítico | Sucesso | >= 99,99% | 30 dias |
 
 ## Alertas
 
-| Alerta | Condição | Severidade | Ação |
+| Alerta | Condição | Severidade | Runbook |
 |---|---|---|---|
-| AgentErrorRateHigh | Erro > 5% por 10 min | Alta | Acionar owner do agente. |
-| ModelProviderLatencyHigh | P95 > 10s por 15 min | Média | Avaliar fallback/degradação. |
-| ToolExecutionFailures | Falha > 3% por 10 min | Alta | Bloquear ferramenta crítica se necessário. |
-| PolicyDenialsSpike | Aumento > 3x da baseline | Média | Investigar abuso ou configuração incorreta. |
-| CostBudgetExceeded | Uso > 90% do budget mensal | Média | Notificar FinOps e owner. |
-| AuditRecordingFailure | Qualquer falha por 5 min | Crítica | Pausar publicação de agentes críticos. |
-| DLQBacklogGrowing | DLQ crescendo por 15 min | Alta | Acionar runbook de reprocessamento. |
+| AgentErrorRateHigh | erro > 5% por 10 min | Alta | troubleshooting-agent-invocation |
+| SloBurnRateFast | burn rate > 14,4x por 5 min | Crítica | troubleshooting-agent-invocation |
+| ModelProviderLatencyHigh | P95 > limite por 15 min | Média | fallback de provedor |
+| ToolExecutionFailures | falha > 3% por 10 min | Alta | desabilitar tool crítica |
+| PolicyDenialsSpike | > 3x baseline | Média | revisar abuso/configuração |
+| CostBudgetExceeded | budget >= 100% | Alta | bloquear/degradar agente |
+| AuditRecordingFailure | qualquer falha por 5 min | Crítica | pausar ações críticas |
+| DLQBacklogGrowing | backlog crescente por 15 min | Alta | reprocessamento controlado |
 
----
+## Segurança de telemetria
 
-## Logs Estruturados
-
-Campos mínimos em logs de aplicação:
-
-```json
-{
-  "timestamp": "2026-07-06T12:00:00Z",
-  "level": "INFO",
-  "service.name": "agent-runtime",
-  "trace.id": "4bf92f3577b34da6a3ce929d0e0e4736",
-  "span.id": "00f067aa0ba902b7",
-  "correlation.id": "7d8cf2aa-ef5f-4cc3-bafa-61ea26277511",
-  "tenant.id": "enterprise",
-  "agent.id": "policy-assistant",
-  "event.name": "model.invoke.completed",
-  "model.provider": "bedrock",
-  "model.id": "anthropic.claude-3-5-sonnet",
-  "input.tokens": 1250,
-  "output.tokens": 430,
-  "latency.ms": 2850,
-  "status": "SUCCESS"
-}
-```
-
-## Regras de Segurança para Observabilidade
-
-- Não registrar prompt completo quando contiver dados pessoais ou classificação `CONFIDENTIAL`/`RESTRICTED`.
-- Mascarar CPF, e-mail, telefone, tokens, secrets e identificadores financeiros.
-- Logs de auditoria devem preservar evidência funcional, não payload sensível bruto.
-- Traces devem carregar hashes ou IDs técnicos, nunca segredo em claro.
+- não registrar prompt completo com dados pessoais ou classificação `CONFIDENTIAL`/`RESTRICTED`;
+- mascarar CPF, e-mail, telefone, tokens, secrets e identificadores financeiros;
+- auditoria preserva evidência funcional, não payload sensível bruto;
+- traces usam IDs técnicos ou hashes;
+- acesso a traces sensíveis exige autorização e é auditado.

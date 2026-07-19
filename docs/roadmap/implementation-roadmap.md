@@ -1,159 +1,129 @@
 # Implementation Roadmap
 
-## Objetivo
+## Baseline entregue neste repositório
 
-Definir uma jornada incremental para implantação da Enterprise AI Platform, reduzindo risco técnico, operacional e regulatório.
+A referência já contém:
 
----
+- contratos OpenAPI e AsyncAPI canônicos;
+- validações de contrato e integridade documental em CI;
+- C4 de container e deployment com control plane/data plane;
+- Model Gateway explícito;
+- runbooks operacionais;
+- vertical slice executável com Docker Compose;
+- documentação publicável via MkDocs e GitHub Pages.
 
-## Phase 1 - Foundation
+A vertical slice é deliberadamente pequena. As fases abaixo descrevem a evolução para produção.
 
-### Objetivo
-
-Criar a base mínima da plataforma para execução controlada de agentes.
-
-### Entregas
-
-- Agent Gateway
-- Agent Runtime
-- Agent Registry
-- Authentication
-- Authorization
-- Observability baseline
-- Kafka event backbone
-
-### Resultado Esperado
-
-Primeiro agente interno executando com autenticação, auditoria e telemetria.
-
-### Critérios de Sucesso
-
-- Agente publicado no catálogo
-- Trace ponta a ponta por invocação
-- Evento `agent.invoked` publicado
-- Logs e métricas disponíveis
-
----
-
-## Phase 2 - Knowledge
+## Fase 1 — Foundation
 
 ### Objetivo
 
-Habilitar RAG corporativo com ingestão, embeddings e busca vetorial.
+Criar o data plane mínimo para execução controlada de agentes.
 
 ### Entregas
 
-- Knowledge Service
-- Ingestion Pipeline
-- Embedding Generation
-- OpenSearch Vector Index
-- Citation Management
-- Retrieval Evaluation
+- Agent Gateway;
+- Agent Runtime;
+- Agent Registry;
+- OIDC e workload identity;
+- Policy Decision Point e Policy Enforcement Points;
+- Model Gateway;
+- baseline OpenTelemetry;
+- backbone Kafka;
+- CI/CD com contract tests.
 
-### Resultado Esperado
+### Critérios de sucesso
 
-Enterprise Search e agentes com respostas fundamentadas em conhecimento corporativo.
+- primeiro agente publicado por pipeline;
+- trace ponta a ponta;
+- eventos canônicos publicados;
+- autorização `deny by default` exercitada;
+- rollback validado;
+- SLO de `INTERACTIVE_SIMPLE` medido.
 
-### Critérios de Sucesso
-
-- Documentos indexados
-- Busca semântica funcionando
-- Citações retornadas nas respostas
-- Métricas de groundedness coletadas
-
----
-
-## Phase 3 - MCP and Tooling
-
-### Objetivo
-
-Permitir que agentes executem ações em sistemas corporativos com governança.
+## Fase 2 — Knowledge e Memory
 
 ### Entregas
 
-- MCP Registry
-- MCP Server onboarding
-- Tool contracts
-- Tool authorization
-- Tool auditing
-- Tool execution metrics
+- Knowledge Service;
+- pipeline de ingestão com quarantine;
+- ACL por documento e chunk;
+- embeddings versionados;
+- busca híbrida;
+- citações;
+- Memory Service com TTL, consentimento e exclusão;
+- avaliação separada de retrieval e geração.
 
-### Resultado Esperado
+### Critérios de sucesso
 
-Agentes executando ferramentas corporativas de forma segura, auditável e versionada.
+- acesso cross-tenant bloqueado em testes;
+- documentos eliminados deixam de aparecer no retrieval;
+- groundedness e retrieval metrics coletadas;
+- memory poisoning coberto por testes.
 
-### Critérios de Sucesso
-
-- Ferramentas registradas no catálogo
-- Tool calls auditados
-- Políticas de autorização aplicadas
-- Eventos `tool.executed` publicados
-
----
-
-## Phase 4 - Governance and Evaluation
-
-### Objetivo
-
-Formalizar governança, avaliação de qualidade e gestão de risco.
+## Fase 3 — MCP e ferramentas corporativas
 
 ### Entregas
 
-- AI Catalog
-- Approval Workflow
-- AI Risk Framework
-- Evaluation Service
-- Model Lifecycle
-- Compliance evidence
+- MCP Registry;
+- onboarding automatizado;
+- tool contracts versionados;
+- idempotência e outbox para escrita;
+- human approval para ações críticas;
+- auditoria e métricas por tool.
 
-### Resultado Esperado
+### Critérios de sucesso
 
-Publicação de agentes controlada por workflow, risco e evidências de avaliação.
+- descoberta limitada por agente e política;
+- repetição não duplica efeitos;
+- tools podem ser bloqueadas sem indisponibilizar o Runtime;
+- rollback ou compensação testados.
 
-### Critérios de Sucesso
-
-- Agentes classificados por risco
-- Aprovação formal registrada
-- Avaliações automáticas disponíveis
-- Eventos de governança publicados
-
----
-
-## Phase 5 - Scale and FinOps
-
-### Objetivo
-
-Escalar a plataforma para múltiplas áreas, agentes e modelos com controle financeiro.
+## Fase 4 — Governance e Evaluation
 
 ### Entregas
 
-- Multi-Agent Orchestration
-- Self-Service Portal
-- Agent Marketplace
-- Billing Service
-- Token Analytics
-- Chargeback / Showback
-- Executive dashboards
+- AI Catalog;
+- workflow com segregação de funções;
+- risk assessment automatizado;
+- datasets e baselines;
+- quality gates;
+- evidências imutáveis;
+- model lifecycle.
 
-### Resultado Esperado
+### Critérios de sucesso
 
-Plataforma corporativa de IA operando em escala, com governança, custos e qualidade controlados.
+- nenhuma versão HIGH/CRITICAL publicada sem evidências;
+- mesma identidade não submete e aprova;
+- regressões bloqueiam deploy;
+- thresholds são rastreáveis ao dataset e versão.
 
-### Critérios de Sucesso
+## Fase 5 — Scale e FinOps
 
-- Custos atribuídos por área
-- Dashboards executivos disponíveis
-- Agentes reutilizáveis publicados
-- Adoção por múltiplas unidades de negócio
+### Entregas
 
----
+- multi-tenant isolation endurecido;
+- autoscaling por concorrência e backlog;
+- budgets, quotas e chargeback;
+- marketplace interno;
+- disaster recovery;
+- dashboards executivos;
+- operação multi-região quando justificada.
 
-## Sequenciamento Recomendado
+### Critérios de sucesso
 
-| Fase | Horizonte | Foco |
+- custos atribuídos por área, agente e modelo;
+- noisy neighbor controlado;
+- testes de capacidade a 2x do pico;
+- RTO/RPO exercitados;
+- error budgets usados nas decisões de release.
+
+## Sequenciamento de referência
+
+| Fase | Horizonte inicial | Resultado |
 |---|---|---|
-| Phase 1 | 0-3 meses | Fundação técnica |
-| Phase 2 | 3-6 meses | Conhecimento e RAG |
-| Phase 3 | 6-9 meses | Ferramentas e MCP |
-| Phase 4 | 9-12 meses | Governança e avaliação |
-| Phase 5 | 12+ meses | Escala e FinOps |
+| 1 | 0–3 meses | agente interno controlado em produção |
+| 2 | 3–6 meses | RAG e memória com autorização e descarte |
+| 3 | 6–9 meses | tools corporativas governadas |
+| 4 | 9–12 meses | publicação baseada em risco e evidências |
+| 5 | 12+ meses | escala, marketplace e controle financeiro |
