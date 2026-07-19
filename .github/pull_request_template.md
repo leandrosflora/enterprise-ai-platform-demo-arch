@@ -20,7 +20,7 @@
 
 - [ ] `python scripts/validate_contracts.py`
 - [ ] `python scripts/validate_docs.py`
-- [ ] `./scripts/render_diagrams.sh`
+- [ ] `bash scripts/render_diagrams.sh`
 - [ ] testes da vertical slice
 - [ ] `mkdocs build --strict`
 
