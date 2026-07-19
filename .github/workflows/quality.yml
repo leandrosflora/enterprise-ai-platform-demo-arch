@@ -17,6 +17,9 @@ jobs:
         with:
           python-version: '3.13'
           cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install validation dependencies
         run: pip install pyyaml mkdocs-material
       - name: Validate canonical contracts
@@ -25,11 +28,12 @@ jobs:
         run: python scripts/validate_docs.py
       - name: Lint OpenAPI and AsyncAPI
         run: |
-          npm install --global @stoplight/spectral-cli
+          npm install --global @stoplight/spectral-cli @asyncapi/cli@6.0.2
           spectral lint -r .spectral.yaml docs/contracts/openapi.yaml
           spectral lint -r .spectral-asyncapi.yaml docs/contracts/async-api.yaml
+          asyncapi validate docs/contracts/async-api.yaml
       - name: Check PlantUML
-        run: ./scripts/render_diagrams.sh
+        run: bash scripts/render_diagrams.sh
       - name: Build documentation
         run: mkdocs build --strict
       - name: Check external links
