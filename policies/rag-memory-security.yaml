@@ -1,0 +1,94 @@
+version: 1.0.0
+owner: AI Platform Security
+default_decision: DENY
+
+rag:
+  ingestion:
+    default_state: QUARANTINED
+    required_controls:
+      - malware_scan
+      - content_type_validation
+      - checksum_validation
+      - source_approval
+      - provenance_capture
+      - prompt_injection_scan
+      - quarantine
+    approved_content_types:
+      - text/plain
+      - text/markdown
+      - application/pdf
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    max_document_bytes: 52428800
+    release_condition: all_required_controls_passed
+
+  retrieval:
+    required_controls:
+      - tenant_filter
+      - document_acl
+      - chunk_acl
+      - classification_clearance
+      - purpose_binding
+      - post_filter
+      - provenance_return
+      - context_delimiters
+    unauthorized_result_behavior: FILTER_WITHOUT_DISCLOSURE
+    default_top_k: 5
+    maximum_top_k: 50
+    treat_retrieved_content_as_untrusted: true
+    context_boundary_tag: untrusted_document
+
+memory:
+  default_persistence: DENY
+  required_controls:
+    - consent
+    - purpose_binding
+    - ttl
+    - provenance
+    - trust_level
+    - poisoning_detection
+    - subject_isolation
+    - tenant_isolation
+    - deny_sensitive_by_default
+    - deletion
+  blocked_classifications:
+    - RESTRICTED
+  types:
+    SESSION:
+      maximum_ttl_seconds: 86400
+      consent_required: false
+      model_inferred_allowed: true
+    SHORT_TERM:
+      maximum_ttl_seconds: 604800
+      consent_required: false
+      model_inferred_allowed: false
+    LONG_TERM:
+      maximum_ttl_seconds: 31536000
+      consent_required: true
+      model_inferred_allowed: false
+    PROFILE:
+      maximum_ttl_seconds: 31536000
+      consent_required: true
+      model_inferred_allowed: false
+  trusted_sources:
+    - USER_CONFIRMED
+    - SYSTEM_VERIFIED
+  conditionally_trusted_sources:
+    - TOOL_OUTPUT
+  untrusted_sources:
+    - MODEL_INFERRED
+  poisoning_indicators:
+    - ignore_previous_instructions
+    - reveal_system_prompt
+    - override_policy
+    - execute_hidden_tool
+    - developer_message_spoofing
+
+evidence:
+  required:
+    - quarantine_result
+    - authorization_decision_id
+    - provenance_checksum
+    - retrieval_security_metadata
+    - consent_reference_when_required
+    - memory_source_and_confidence
+    - deletion_event

@@ -52,6 +52,7 @@ nav:
   - Segurança:
       - Autenticação: security/authentication.md
       - Autorização: security/authorization.md
+      - Segurança de RAG e memória: security/rag-memory-security.md
       - Threat Model: security/threat-model.md
       - LGPD: security/lgpd.md
   - Observabilidade:

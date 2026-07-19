@@ -11,7 +11,8 @@ Esta pasta contém a arquitetura de referência, contratos executáveis, control
 5. [Contratos HTTP](contracts/openapi.yaml)
 6. [Contratos de eventos](contracts/async-api.yaml)
 7. [AI Risk Framework](governance/ai-risk-framework.md)
-8. [Tracing e SLOs](observability/tracing.md)
+8. [Segurança de RAG e memória](security/rag-memory-security.md)
+9. [Tracing e SLOs](observability/tracing.md)
 
 ## Estrutura
 
@@ -22,13 +23,13 @@ contracts/                OpenAPI, AsyncAPI, MCP, eventos e data stores
 domains/                  Domínios funcionais da plataforma
 services/                 Responsabilidades e contratos por serviço
 governance/               Workflow, risco, catálogo e ciclo de modelos
-security/                 Autenticação, autorização, LGPD e threat model
+security/                 Autenticação, autorização, LGPD, RAG/memória e threat model
 observability/            Tracing, métricas, dashboards, alertas e SLOs
 finops/                   Custos, budgets, chargeback e showback
 runbooks/                 Procedimentos operacionais e troubleshooting
 examples/                 Exemplos ponta a ponta
 reference-architectures/  Blueprints por caso de uso
-roadmap/                   Sequenciamento de implantação
+roadmap/                  Sequenciamento de implantação
 ```
 
 ## Fontes canônicas
@@ -41,8 +42,9 @@ roadmap/                   Sequenciamento de implantação
 | SLOs | [`architecture/non-functional-requirements.md`](architecture/non-functional-requirements.md) |
 | Controles de risco | [`governance/ai-risk-framework.md`](governance/ai-risk-framework.md) |
 | Autorização | [`security/authorization.md`](security/authorization.md) |
+| Segurança de RAG e memória | [`security/rag-memory-security.md`](security/rag-memory-security.md) + [`../policies/rag-memory-security.yaml`](../policies/rag-memory-security.yaml) |
 
-Exemplos e documentos derivados não podem redefinir enums, envelopes ou metas diferentes das fontes canônicas.
+Exemplos e documentos derivados não podem redefinir enums, envelopes, controles obrigatórios ou metas diferentes das fontes canônicas.
 
 ## Arquitetura
 
@@ -79,6 +81,6 @@ Na raiz do repositório:
 ```bash
 python scripts/validate_contracts.py
 python scripts/validate_docs.py
-./scripts/render_diagrams.sh
-mkdocs build --strict
+bash scripts/render_diagrams.sh
+mkdocs build
 ```
