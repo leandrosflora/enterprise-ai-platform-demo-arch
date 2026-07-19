@@ -8,6 +8,12 @@
   }
 }
 
+@page cover {
+  @bottom-center {
+    content: none;
+  }
+}
+
 html {
   font-family: "DejaVu Sans", Arial, sans-serif;
   font-size: 10.5pt;
@@ -108,22 +114,36 @@ img, svg {
 }
 
 .title-page {
+  page: cover;
   text-align: center;
-  padding-top: 70mm;
+  padding-top: 62mm;
   page-break-after: always;
 }
 
 .title-page h1 {
   page-break-before: avoid;
   border-bottom: 0;
-  font-size: 30pt;
+  font-size: 31pt;
+  line-height: 1.15;
+  margin-bottom: 20pt;
 }
 
 .title-page p {
   color: #486581;
   font-size: 13pt;
+  margin: 10pt 0;
 }
 
-#TOC {
-  page-break-after: always;
+.book-summary {
+  margin-top: 20pt;
+}
+
+.book-summary ol {
+  padding-left: 24pt;
+}
+
+.book-summary li {
+  font-size: 13pt;
+  margin: 10pt 0;
+  color: #243b53;
 }
