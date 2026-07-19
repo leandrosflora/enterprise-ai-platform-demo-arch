@@ -1,84 +1,121 @@
 # Contratos de Eventos
 
-Este documento define os principais eventos assíncronos da Enterprise AI Platform.
+## Fonte canônica
 
-## Padrões
+O arquivo [`async-api.yaml`](async-api.yaml) é a fonte executável dos eventos. Este documento define as convenções normativas. Exemplos e implementações não podem criar envelopes ou enums alternativos.
 
-- Formato: JSON
-- Transporte: Kafka
-- Versionamento: `schemaVersion`
-- Identificação: `eventId`, `correlationId`, `causationId`
-- Data/hora: ISO 8601 UTC
-- Estratégia de erro: DLQ por domínio
+## Transporte e versionamento
 
-## Envelope Padrão
+- Transporte de referência: Kafka.
+- Serialização de referência: JSON UTF-8.
+- Tópicos usam o formato `<evento>.v<major>`, por exemplo `agent.invoked.v1`.
+- `schemaVersion` usa SemVer.
+- Mudanças incompatíveis exigem novo major e novo tópico.
+- Produtores não removem campos durante a vida de um major.
+- Consumidores ignoram campos desconhecidos.
+
+## Envelope obrigatório
 
 ```json
 {
-  "eventId": "uuid",
+  "eventId": "8dcf94dc-0af0-4f99-95d9-e617424b2c4b",
   "eventType": "agent.invoked",
   "schemaVersion": "1.0.0",
-  "occurredAt": "2026-07-06T00:00:00Z",
-  "correlationId": "uuid",
-  "causationId": "uuid",
-  "tenantId": "organization-id",
+  "occurredAt": "2026-07-19T12:00:00Z",
+  "correlationId": "30b846cc-d3f5-4aaa-9b99-aaf519dca78e",
+  "causationId": "msg-001",
+  "tenantId": "enterprise",
   "source": "agent-runtime",
+  "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+  "dataClassification": "INTERNAL",
   "payload": {}
 }
 ```
 
-## Tópicos
+Campos obrigatórios:
 
-| Evento | Produtor | Consumidores | Finalidade |
+| Campo | Regra |
+|---|---|
+| `eventId` | UUID único usado para deduplicação. |
+| `eventType` | Nome sem versão, igual ao domínio sem o sufixo do tópico. |
+| `schemaVersion` | Versão SemVer do schema. Não usar `eventVersion`. |
+| `occurredAt` | ISO 8601 UTC. |
+| `correlationId` | Correlação funcional de toda a execução. |
+| `tenantId` | Tenant derivado da identidade ou contexto confiável. |
+| `source` | Serviço produtor. |
+| `dataClassification` | `PUBLIC`, `INTERNAL`, `CONFIDENTIAL` ou `RESTRICTED`. |
+| `payload` | Payload tipado pelo AsyncAPI. |
+
+`causationId` e `traceparent` são obrigatórios quando existe uma causa ou contexto distribuído anterior.
+
+## Enums compartilhados
+
+### Risco
+
+`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`.
+
+### Estado de execução
+
+`SUCCESS`, `FAILED`, `BLOCKED`, `PARTIAL`.
+
+### Classificação de dados
+
+`PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`.
+
+## Catálogo de tópicos
+
+| Evento | Tópico | Produtor principal | Consumidores típicos |
 |---|---|---|---|
-| `agent.created` | Agent Registry | Governance Service, Audit Service | Registrar criação de agente |
-| `agent.updated` | Agent Registry | Governance Service, Audit Service | Registrar alteração de metadados |
-| `agent.published` | Governance Service | Agent Registry, Audit Service | Publicar agente aprovado |
-| `agent.retired` | Governance Service | Agent Registry, Audit Service | Retirar agente de operação |
-| `agent.invoked` | Agent Runtime | Audit Service, Billing Service, Evaluation Service | Registrar execução de agente |
-| `tool.executed` | Agent Runtime | Audit Service, Billing Service | Registrar execução de ferramenta |
-| `knowledge.ingested` | Knowledge Service | Audit Service | Registrar ingestão de conhecimento |
-| `embedding.generated` | Knowledge Service | Audit Service, Billing Service | Registrar geração de embedding |
-| `document.indexed` | Knowledge Service | Audit Service | Registrar indexação vetorial |
-| `memory.updated` | Memory Service | Audit Service | Registrar atualização de memória |
-| `evaluation.started` | Evaluation Service | Audit Service | Registrar início de avaliação |
-| `evaluation.completed` | Evaluation Service | Governance Service, Audit Service | Registrar resultado de avaliação |
-| `governance.approved` | Governance Service | Agent Registry, Audit Service | Aprovar agente ou versão |
-| `governance.rejected` | Governance Service | Agent Registry, Audit Service | Rejeitar agente ou versão |
-| `audit.created` | Audit Service | Observability Stack | Registrar trilha de auditoria |
+| `agent.created` | `agent.created.v1` | Agent Registry | Governance, Audit |
+| `agent.updated` | `agent.updated.v1` | Agent Registry | Governance, Audit |
+| `agent.published` | `agent.published.v1` | Governance | Registry, Runtime, Audit |
+| `agent.retired` | `agent.retired.v1` | Governance | Registry, Runtime, Audit |
+| `agent.invoked` | `agent.invoked.v1` | Agent Runtime | Audit, Billing, Evaluation |
+| `tool.executed` | `tool.executed.v1` | Agent Runtime | Audit, Billing |
+| `model.invoked` | `model.invoked.v1` | Model Gateway | Billing, Observability |
+| `knowledge.ingested` | `knowledge.ingested.v1` | Knowledge Service | Audit |
+| `embedding.generated` | `embedding.generated.v1` | Knowledge Service | Billing, Audit |
+| `document.indexed` | `document.indexed.v1` | Knowledge Service | Audit |
+| `memory.updated` | `memory.updated.v1` | Memory Service | Audit |
+| `evaluation.started` | `evaluation.started.v1` | Evaluation Service | Audit |
+| `evaluation.completed` | `evaluation.completed.v1` | Evaluation Service | Governance, Audit |
+| `governance.approved` | `governance.approved.v1` | Governance | Registry, Audit |
+| `governance.rejected` | `governance.rejected.v1` | Governance | Registry, Audit |
+| `audit.created` | `audit.created.v1` | Audit Service | Observability / Archive |
 
-## Exemplo: agent.invoked
+## Entrega, idempotência e ordenação
 
-```json
-{
-  "eventId": "7d8cf2aa-ef5f-4cc3-bafa-61ea26277511",
-  "eventType": "agent.invoked",
-  "schemaVersion": "1.0.0",
-  "occurredAt": "2026-07-06T12:00:00Z",
-  "correlationId": "b884f86e-8107-4266-98f3-e116a62efed0",
-  "causationId": "b884f86e-8107-4266-98f3-e116a62efed0",
-  "tenantId": "enterprise",
-  "source": "agent-runtime",
-  "payload": {
-    "agentId": "credit-agent",
-    "agentVersion": "1.0.0",
-    "channel": "ai-portal",
-    "userId": "user-123",
-    "modelProvider": "bedrock",
-    "modelId": "anthropic.claude",
-    "inputTokens": 1250,
-    "outputTokens": 430,
-    "latencyMs": 2850,
-    "status": "succeeded"
-  }
-}
-```
+- Semântica padrão: **at-least-once**.
+- Consumidores deduplicam por `eventId`.
+- Chaves de partição:
+  - agente: `tenantId + agentId`;
+  - sessão: `tenantId + sessionId`;
+  - documento: `tenantId + knowledgeBaseId + documentId`.
+- Não existe garantia global de ordenação entre tópicos.
+- Comandos críticos usam outbox transacional no produtor.
+- Consumidores persistem offset somente após concluir o processamento idempotente.
 
-## Retenção
+## Erros e DLQ
 
-| Classe | Retenção | Observação |
+- Retry com backoff apenas para falhas transitórias.
+- Eventos inválidos não são repetidos indefinidamente.
+- DLQ por domínio com payload original, erro sanitizado e metadados de tentativa.
+- Reprocessamento exige autorização, auditoria e preservação do `eventId` original.
+
+## Segurança
+
+- Payloads não devem transportar prompts completos ou dados pessoais quando metadados bastarem.
+- Campos sensíveis são mascarados antes da publicação.
+- ACLs de tópicos seguem least privilege.
+- Eventos `CONFIDENTIAL` e `RESTRICTED` usam criptografia e retenção compatíveis com a classificação.
+
+## Retenção de referência
+
+| Classe | Retenção inicial | Observação |
 |---|---:|---|
-| Auditoria | 5 anos | Conforme política regulatória |
-| Uso e cobrança | 24 meses | Base para chargeback/showback |
-| Operacional | 90 dias | Diagnóstico e troubleshooting |
-| DLQ | 30 dias | Reprocessamento controlado |
+| Operacional | 90 dias | Diagnóstico e replay limitado. |
+| Billing | 24 meses | Showback e chargeback. |
+| Auditoria | 5 anos | Ajustar à obrigação regulatória aplicável. |
+| DLQ | 30 dias | Reprocessamento controlado. |
+
+Prazos são referências e devem ser aprovados por Jurídico, Segurança e LGPD para cada organização.
