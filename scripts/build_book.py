@@ -12,8 +12,8 @@ BOOK_DIR = ROOT / "docs" / "book"
 OUTPUT_DIR = ROOT / "build" / "book"
 OUTPUT_PATH = OUTPUT_DIR / "enterprise-ai-platform-book.md"
 
+FRONT_MATTER = "index.md"
 CHAPTERS = [
-    "index.md",
     "01-why-ai-platform.md",
     "02-capability-map.md",
     "03-operating-model.md",
@@ -23,6 +23,17 @@ CHAPTERS = [
     "07-adoption-roadmap.md",
     "08-production-checklists.md",
     "glossary.md",
+]
+SUMMARY = [
+    "1. Por que uma AI Platform?",
+    "2. Capability Map",
+    "3. Operating Model",
+    "4. Ciclo de vida de agentes",
+    "5. Estudo de caso: agente documental com RAG",
+    "6. Decision Guides",
+    "7. Modelo de maturidade e roadmap de adoção",
+    "8. Checklists de produção",
+    "9. Glossário",
 ]
 
 LOCAL_MARKDOWN_LINK = re.compile(r"\[([^\]]+)\]\((?!https?://|mailto:|#)([^)]+\.md(?:#[^)]+)?)\)")
@@ -40,9 +51,13 @@ def git_revision() -> str:
         return "unknown"
 
 
+def book_files() -> list[str]:
+    return [FRONT_MATTER, *CHAPTERS]
+
+
 def validate() -> list[str]:
     errors: list[str] = []
-    for chapter in CHAPTERS:
+    for chapter in book_files():
         path = BOOK_DIR / chapter
         if not path.exists():
             errors.append(f"Missing book chapter: {path.relative_to(ROOT)}")
@@ -52,6 +67,8 @@ def validate() -> list[str]:
             errors.append(f"Chapter must start with H1: {path.relative_to(ROOT)}")
         if len(text.split()) < 80:
             errors.append(f"Chapter is unexpectedly short: {path.relative_to(ROOT)}")
+    if len(SUMMARY) != len(CHAPTERS):
+        errors.append("Summary and chapter manifest must contain the same number of items")
     return errors
 
 
@@ -81,32 +98,51 @@ def normalize_links(source: Path, text: str) -> str:
     )
 
 
+def as_front_matter(path: Path) -> str:
+    text = normalize_links(path, path.read_text(encoding="utf-8").strip())
+    return text.replace(
+        "# Enterprise AI Platform Book",
+        "# Como ler este livro {.unnumbered}",
+        1,
+    )
+
+
 def build() -> None:
     generated_at = datetime.now(UTC).strftime("%Y-%m-%d")
     revision = git_revision()
     parts = [
         "---",
-        'title: "Enterprise AI Platform Book"',
-        'subtitle: "Estratégia, arquitetura, governança e operação"',
-        'author: "Leandro Silva Flora"',
         'lang: "pt-BR"',
-        f'date: "{generated_at}"',
-        "toc: true",
-        "toc-depth: 3",
-        "numbersections: true",
+        'pagetitle: "Enterprise AI Platform Book"',
         "---",
         "",
         '<div class="title-page">',
         "",
-        "# Enterprise AI Platform Book",
+        "# Enterprise AI Platform Book {.unnumbered}",
         "",
         "Estratégia, arquitetura, governança e operação",
         "",
+        "Leandro Silva Flora",
+        "",
         f"Revisão `{revision}` - {generated_at}",
         "",
-        "Arquitetura de referência acompanhada por contratos, políticas e vertical slice executável.",
+        "Arquitetura de referência acompanhada por contratos, policies e vertical slice executável.",
         "",
         "</div>",
+        "",
+        "# Sumário {.unnumbered}",
+        "",
+        '<div class="book-summary">',
+        "",
+        *SUMMARY,
+        "",
+        "</div>",
+        "",
+        '<div class="page-break"></div>',
+        "",
+        as_front_matter(BOOK_DIR / FRONT_MATTER),
+        "",
+        '<div class="page-break"></div>',
         "",
     ]
 
@@ -134,7 +170,7 @@ def main() -> int:
         return 1
 
     if args.check:
-        print(f"Book manifest validation passed ({len(CHAPTERS)} chapters)")
+        print(f"Book manifest validation passed ({len(book_files())} files)")
         return 0
 
     build()
