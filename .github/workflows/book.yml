@@ -51,7 +51,6 @@ jobs:
           pandoc build/book/enterprise-ai-platform-book.md \
             --from=gfm+raw_html \
             --standalone \
-            --number-sections \
             --pdf-engine=weasyprint \
             --css=docs/book/book.css \
             --resource-path=.:docs:docs/book \
@@ -69,7 +68,7 @@ jobs:
           mkdir -p build/book/preview
           pdftoppm \
             -f 1 \
-            -l 5 \
+            -l 6 \
             -png \
             -r 120 \
             build/book/enterprise-ai-platform-book.pdf \
