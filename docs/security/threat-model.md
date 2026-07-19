@@ -2,69 +2,93 @@
 
 ## Objetivo
 
-Identificar ameaças relevantes para a Enterprise AI Platform usando STRIDE e definir controles mínimos para mitigação.
+Identificar ameaças relevantes usando STRIDE e controles específicos para agentes, RAG, memória e ferramentas.
 
 ## Escopo
 
-Componentes avaliados:
-
-- AI Portal
-- Agent Gateway
-- Agent Runtime
-- MCP Registry
-- MCP Servers
-- Knowledge Service
-- Memory Service
-- Evaluation Service
-- Governance Service
-- Audit Service
-- Foundation Model Providers
-
----
+- AI Portal, Agent Gateway e Agent Runtime;
+- Model Gateway e provedores;
+- Knowledge Service, índices vetoriais e pipeline de ingestão;
+- Memory Service;
+- MCP Registry e MCP Servers;
+- Governance, Evaluation e Audit Services.
 
 ## STRIDE
 
 | Categoria | Ameaça | Exemplo | Mitigação |
 |---|---|---|---|
-| Spoofing | Falsificação de identidade | Token inválido ou reutilizado acessando agente | OIDC, validação de JWT, mTLS para serviço-serviço |
-| Tampering | Alteração indevida | Manipulação de prompt, contrato MCP ou payload de evento | Assinatura de contratos, versionamento, validação de schema |
-| Repudiation | Negação de ação | Usuário ou serviço nega execução de tool call | Audit trail imutável, correlationId, userId, timestamp |
-| Information Disclosure | Vazamento de dados | Prompt ou resposta contendo dados sensíveis | Mascaramento, classificação, controle de acesso, DLP |
-| Denial of Service | Indisponibilidade | Explosão de chamadas de modelo ou tool calls | Rate limiting, quotas, circuit breaker, timeout |
-| Elevation of Privilege | Elevação de privilégio | Agente executa ferramenta fora do escopo autorizado | RBAC, ABAC, policy enforcement, escopos por tool |
-
----
+| Spoofing | Identidade falsificada | Token reutilizado acessando agente ou memória | OIDC, validação JWT, workload identity, mTLS |
+| Tampering | Alteração indevida | Documento ou evento alterado após aprovação | Checksum, assinatura, versão imutável, schema validation |
+| Repudiation | Negação de ação | Usuário nega tool call ou escrita de memória | Audit trail, correlation ID, sujeito em hash, timestamp |
+| Information Disclosure | Vazamento | Chunk ou memória de outro tenant | ACL por chunk, clearance, subject isolation, redaction |
+| Denial of Service | Exaustão | Explosão de retrieval, embeddings ou tool calls | Rate limit, quotas, timeout, circuit breaker |
+| Elevation of Privilege | Escalada | Agente acessa KB ou ferramenta não autorizada | Deny by default, PDP/PEP, scopes e allowlists |
 
 ## Ameaças Específicas de IA
 
-| Ameaça | Descrição | Mitigação |
+| Ameaça | Cenário | Controles obrigatórios |
 |---|---|---|
-| Prompt Injection | Usuário tenta alterar instruções do agente | System prompts protegidos, filtros, validação de intenção |
-| Data Exfiltration | Agente expõe dados de bases não autorizadas | Autorização por knowledge base, redaction, logging |
-| Tool Misuse | Ferramenta é chamada com argumentos indevidos | JSON Schema, políticas, allowlist, revisão humana |
-| Model Hallucination | Resposta incorreta apresentada como fato | RAG com citações, groundedness evaluation, disclaimers |
-| Poisoned Knowledge | Base de conhecimento contém conteúdo malicioso | Curadoria, classificação, aprovação de fonte, reindexação controlada |
-| Excessive Agency | Agente toma decisões além do permitido | Limites de autonomia, human-in-the-loop, risk tiering |
+| Direct Prompt Injection | Usuário tenta substituir instruções | Separação de instruções, filtros, policy enforcement |
+| Indirect Prompt Injection | Documento recuperado contém comandos ao modelo | Quarentena, scanner, delimitadores, sanitização e avaliação adversarial |
+| Data Exfiltration | Resposta inclui dado não autorizado | Tenant filter, ACL por chunk, output filtering e DLP |
+| Poisoned Knowledge | Fonte ou documento altera respostas | Fonte aprovada, checksum, proveniência, quarantine-first |
+| ACL Bypass | Busca vetorial retorna chunk fora do escopo | Filtro no índice + post-filter no serviço + testes negativos |
+| Metadata Poisoning | Atacante reduz classificação ou amplia ACL | Metadados assinados/versionados e aprovação para mudança |
+| Memory Poisoning | Instrução ou fato falso vira memória persistente | Validação de origem, confiança, consentimento e indicadores |
+| Cross-Subject Memory Access | Usuário lê perfil de outro | Subject hash derivado da identidade e chave composta |
+| Consent/Retention Failure | Memória permanece após revogação | TTL index, bloqueio imediato, delete/anonymous workflow |
+| Tool Misuse | Ferramenta recebe argumento indevido | JSON Schema, allowlist, idempotência e human approval |
+| Hallucination | Resposta incorreta apresentada como fato | Citações, groundedness, confidence e fallback |
+| Excessive Agency | Agente atua além do permitido | Limites de autonomia, risk tiering e human-in-the-loop |
 
----
+## Fronteiras de Confiança
+
+```text
+Usuário → Gateway → Runtime
+                    ├─ Model Gateway → Provider externo
+                    ├─ Knowledge Service → documentos não confiáveis
+                    ├─ Memory Service → contexto persistente
+                    └─ MCP → sistemas com efeito colateral
+```
+
+Documentos, respostas de ferramentas, conteúdo do usuário e saídas do modelo são entradas não confiáveis. Somente políticas, identidades e configurações publicadas pelo control plane são tratadas como instruções confiáveis.
 
 ## Controles Obrigatórios
 
-- Autenticação centralizada via Identity Provider
-- Autorização por agente, ferramenta e base de conhecimento
-- Auditoria de invocações, tool calls e decisões de governança
-- CorrelationId obrigatório em todas as chamadas
-- Mascaramento de dados sensíveis em logs e traces
-- Avaliação contínua de segurança, qualidade e groundedness
-- Retenção e descarte conforme LGPD
+- identidade centralizada e escopos mínimos;
+- tenant e sujeito derivados do token;
+- quarentena antes de indexação;
+- ACL por documento e chunk;
+- proveniência e checksum;
+- conteúdo RAG delimitado como não confiável;
+- consentimento, finalidade, TTL e origem para memória;
+- bloqueio de memória `RESTRICTED`;
+- detecção de poisoning;
+- auditoria sem payload sensível;
+- avaliação adversarial contínua;
+- exclusão e reindexação verificáveis.
 
----
+Detalhamento: [Segurança de RAG e Memória](rag-memory-security.md).
+
+## Testes de Segurança Mínimos
+
+1. documento com prompt injection permanece em quarentena;
+2. papel ou clearance insuficiente recebe zero resultados;
+3. tenant diferente não obtém indicação da existência do documento;
+4. chunk sem ACL compatível não chega ao prompt;
+5. memória de perfil sem consentimento é negada;
+6. `MODEL_INFERRED` não persiste em perfil ou longo prazo;
+7. indicador de poisoning é rejeitado;
+8. outro sujeito não lê nem exclui a memória;
+9. revogação e TTL removem o dado;
+10. eventos não contêm texto ou valor sensível.
 
 ## Riscos Residuais
 
 | Risco | Tratamento |
 |---|---|
-| Alucinação residual | Monitoramento, avaliação e revisão humana em casos críticos |
-| Dependência de provedor externo | Estratégia multi-provider e fallback |
-| Custo inesperado | Quotas, alertas e dashboards FinOps |
-| Mudança de comportamento do modelo | Regression testing e versionamento de avaliações |
+| Indicador novo de prompt injection | Atualização de scanner e red-team contínuo |
+| Falso negativo de classificação | DLP, revisão humana e minimização |
+| Inconsistência entre índice e metadados | Reconciliation job e fail closed |
+| Exclusão em backup | Política de retenção e crypto-shredding |
+| Mudança de comportamento do modelo | Regression testing e versionamento |
