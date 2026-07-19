@@ -15,7 +15,7 @@ pip install pyyaml mkdocs-material
 python scripts/validate_contracts.py
 python scripts/validate_docs.py
 mkdocs build --strict
-./scripts/render_diagrams.sh
+bash scripts/render_diagrams.sh
 ```
 
 Para a vertical slice:
