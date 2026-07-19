@@ -1,313 +1,346 @@
-asyncapi: '3.0.0'
+asyncapi: 3.0.0
 info:
   title: Enterprise AI Platform Events
-  version: 1.0.0
-  description: Event contracts for the Enterprise AI Platform.
-
+  version: 1.1.0
+  description: Contratos canônicos de eventos da plataforma.
 defaultContentType: application/json
 
 servers:
   kafka:
     host: kafka:9092
     protocol: kafka
-    description: Corporate Kafka cluster
+    description: Cluster corporativo Kafka
 
 channels:
-  agent.invoked:
-    address: agent.invoked
-    messages:
-      AgentInvokedMessage:
-        $ref: '#/components/messages/AgentInvokedMessage'
-  agent.published:
-    address: agent.published
-    messages:
-      AgentPublishedMessage:
-        $ref: '#/components/messages/AgentPublishedMessage'
-  tool.executed:
-    address: tool.executed
-    messages:
-      ToolExecutedMessage:
-        $ref: '#/components/messages/ToolExecutedMessage'
-  knowledge.ingested:
-    address: knowledge.ingested
-    messages:
-      KnowledgeIngestedMessage:
-        $ref: '#/components/messages/KnowledgeIngestedMessage'
-  evaluation.completed:
-    address: evaluation.completed
-    messages:
-      EvaluationCompletedMessage:
-        $ref: '#/components/messages/EvaluationCompletedMessage'
-  governance.approved:
-    address: governance.approved
-    messages:
-      GovernanceApprovedMessage:
-        $ref: '#/components/messages/GovernanceApprovedMessage'
+  agentCreated: {$ref: '#/components/channels/agentCreated'}
+  agentUpdated: {$ref: '#/components/channels/agentUpdated'}
+  agentPublished: {$ref: '#/components/channels/agentPublished'}
+  agentRetired: {$ref: '#/components/channels/agentRetired'}
+  agentInvoked: {$ref: '#/components/channels/agentInvoked'}
+  toolExecuted: {$ref: '#/components/channels/toolExecuted'}
+  modelInvoked: {$ref: '#/components/channels/modelInvoked'}
+  knowledgeIngested: {$ref: '#/components/channels/knowledgeIngested'}
+  embeddingGenerated: {$ref: '#/components/channels/embeddingGenerated'}
+  documentIndexed: {$ref: '#/components/channels/documentIndexed'}
+  memoryUpdated: {$ref: '#/components/channels/memoryUpdated'}
+  evaluationStarted: {$ref: '#/components/channels/evaluationStarted'}
+  evaluationCompleted: {$ref: '#/components/channels/evaluationCompleted'}
+  governanceApproved: {$ref: '#/components/channels/governanceApproved'}
+  governanceRejected: {$ref: '#/components/channels/governanceRejected'}
+  auditCreated: {$ref: '#/components/channels/auditCreated'}
 
 operations:
-  publishAgentInvoked:
-    action: send
-    channel:
-      $ref: '#/channels/agent.invoked'
-  publishAgentPublished:
-    action: send
-    channel:
-      $ref: '#/channels/agent.published'
-  publishToolExecuted:
-    action: send
-    channel:
-      $ref: '#/channels/tool.executed'
-  publishKnowledgeIngested:
-    action: send
-    channel:
-      $ref: '#/channels/knowledge.ingested'
-  publishEvaluationCompleted:
-    action: send
-    channel:
-      $ref: '#/channels/evaluation.completed'
-  publishGovernanceApproved:
-    action: send
-    channel:
-      $ref: '#/channels/governance.approved'
+  sendAgentCreated: {action: send, channel: {$ref: '#/channels/agentCreated'}}
+  sendAgentUpdated: {action: send, channel: {$ref: '#/channels/agentUpdated'}}
+  sendAgentPublished: {action: send, channel: {$ref: '#/channels/agentPublished'}}
+  sendAgentRetired: {action: send, channel: {$ref: '#/channels/agentRetired'}}
+  sendAgentInvoked: {action: send, channel: {$ref: '#/channels/agentInvoked'}}
+  sendToolExecuted: {action: send, channel: {$ref: '#/channels/toolExecuted'}}
+  sendModelInvoked: {action: send, channel: {$ref: '#/channels/modelInvoked'}}
+  sendKnowledgeIngested: {action: send, channel: {$ref: '#/channels/knowledgeIngested'}}
+  sendEmbeddingGenerated: {action: send, channel: {$ref: '#/channels/embeddingGenerated'}}
+  sendDocumentIndexed: {action: send, channel: {$ref: '#/channels/documentIndexed'}}
+  sendMemoryUpdated: {action: send, channel: {$ref: '#/channels/memoryUpdated'}}
+  sendEvaluationStarted: {action: send, channel: {$ref: '#/channels/evaluationStarted'}}
+  sendEvaluationCompleted: {action: send, channel: {$ref: '#/channels/evaluationCompleted'}}
+  sendGovernanceApproved: {action: send, channel: {$ref: '#/channels/governanceApproved'}}
+  sendGovernanceRejected: {action: send, channel: {$ref: '#/channels/governanceRejected'}}
+  sendAuditCreated: {action: send, channel: {$ref: '#/channels/auditCreated'}}
 
 components:
+  channels:
+    agentCreated:
+      address: agent.created.v1
+      messages: {event: {$ref: '#/components/messages/AgentLifecycleEvent'}}
+    agentUpdated:
+      address: agent.updated.v1
+      messages: {event: {$ref: '#/components/messages/AgentLifecycleEvent'}}
+    agentPublished:
+      address: agent.published.v1
+      messages: {event: {$ref: '#/components/messages/AgentLifecycleEvent'}}
+    agentRetired:
+      address: agent.retired.v1
+      messages: {event: {$ref: '#/components/messages/AgentLifecycleEvent'}}
+    agentInvoked:
+      address: agent.invoked.v1
+      messages: {event: {$ref: '#/components/messages/AgentInvokedEvent'}}
+    toolExecuted:
+      address: tool.executed.v1
+      messages: {event: {$ref: '#/components/messages/ToolExecutedEvent'}}
+    modelInvoked:
+      address: model.invoked.v1
+      messages: {event: {$ref: '#/components/messages/ModelInvokedEvent'}}
+    knowledgeIngested:
+      address: knowledge.ingested.v1
+      messages: {event: {$ref: '#/components/messages/KnowledgeEvent'}}
+    embeddingGenerated:
+      address: embedding.generated.v1
+      messages: {event: {$ref: '#/components/messages/KnowledgeEvent'}}
+    documentIndexed:
+      address: document.indexed.v1
+      messages: {event: {$ref: '#/components/messages/KnowledgeEvent'}}
+    memoryUpdated:
+      address: memory.updated.v1
+      messages: {event: {$ref: '#/components/messages/MemoryUpdatedEvent'}}
+    evaluationStarted:
+      address: evaluation.started.v1
+      messages: {event: {$ref: '#/components/messages/EvaluationEvent'}}
+    evaluationCompleted:
+      address: evaluation.completed.v1
+      messages: {event: {$ref: '#/components/messages/EvaluationEvent'}}
+    governanceApproved:
+      address: governance.approved.v1
+      messages: {event: {$ref: '#/components/messages/GovernanceEvent'}}
+    governanceRejected:
+      address: governance.rejected.v1
+      messages: {event: {$ref: '#/components/messages/GovernanceEvent'}}
+    auditCreated:
+      address: audit.created.v1
+      messages: {event: {$ref: '#/components/messages/AuditCreatedEvent'}}
+
   messages:
-    AgentInvokedMessage:
-      name: AgentInvokedMessage
-      title: Agent Invoked
-      payload:
-        $ref: '#/components/schemas/AgentInvokedEvent'
+    AgentLifecycleEvent:
+      name: AgentLifecycleEvent
+      payload: {$ref: '#/components/schemas/AgentLifecycleEvent'}
+    AgentInvokedEvent:
+      name: AgentInvokedEvent
+      payload: {$ref: '#/components/schemas/AgentInvokedEvent'}
       examples:
-        - name: agentInvokedSuccess
+        - name: success
           payload:
-            eventId: evt-001
+            eventId: 8dcf94dc-0af0-4f99-95d9-e617424b2c4b
             eventType: agent.invoked
-            eventVersion: 1.0.0
-            occurredAt: '2026-01-01T10:00:00Z'
-            correlationId: corr-001
-            causationId: cmd-001
+            schemaVersion: 1.0.0
+            occurredAt: '2026-07-19T12:00:00Z'
+            correlationId: 30b846cc-d3f5-4aaa-9b99-aaf519dca78e
+            causationId: msg-001
+            tenantId: enterprise
+            source: agent-runtime
+            traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+            dataClassification: INTERNAL
             payload:
-              agentId: internal-copilot
+              agentId: policy-assistant
               agentVersion: 1.0.0
-              tenantId: tenant-default
-              businessUnit: Atendimento
               status: SUCCESS
               latencyMs: 2400
               inputTokens: 1200
               outputTokens: 350
-              modelProvider: bedrock
-              modelId: anthropic.claude
-    AgentPublishedMessage:
-      name: AgentPublishedMessage
-      title: Agent Published
-      payload:
-        $ref: '#/components/schemas/AgentPublishedEvent'
-    ToolExecutedMessage:
-      name: ToolExecutedMessage
-      title: Tool Executed
-      payload:
-        $ref: '#/components/schemas/ToolExecutedEvent'
-    KnowledgeIngestedMessage:
-      name: KnowledgeIngestedMessage
-      title: Knowledge Ingested
-      payload:
-        $ref: '#/components/schemas/KnowledgeIngestedEvent'
-    EvaluationCompletedMessage:
-      name: EvaluationCompletedMessage
-      title: Evaluation Completed
-      payload:
-        $ref: '#/components/schemas/EvaluationCompletedEvent'
-    GovernanceApprovedMessage:
-      name: GovernanceApprovedMessage
-      title: Governance Approved
-      payload:
-        $ref: '#/components/schemas/GovernanceApprovedEvent'
+              costUsd: 0.012
+    ToolExecutedEvent:
+      name: ToolExecutedEvent
+      payload: {$ref: '#/components/schemas/ToolExecutedEvent'}
+    ModelInvokedEvent:
+      name: ModelInvokedEvent
+      payload: {$ref: '#/components/schemas/ModelInvokedEvent'}
+    KnowledgeEvent:
+      name: KnowledgeEvent
+      payload: {$ref: '#/components/schemas/KnowledgeEvent'}
+    MemoryUpdatedEvent:
+      name: MemoryUpdatedEvent
+      payload: {$ref: '#/components/schemas/MemoryUpdatedEvent'}
+    EvaluationEvent:
+      name: EvaluationEvent
+      payload: {$ref: '#/components/schemas/EvaluationEvent'}
+    GovernanceEvent:
+      name: GovernanceEvent
+      payload: {$ref: '#/components/schemas/GovernanceEvent'}
+    AuditCreatedEvent:
+      name: AuditCreatedEvent
+      payload: {$ref: '#/components/schemas/AuditCreatedEvent'}
 
   schemas:
     EventEnvelope:
       type: object
+      additionalProperties: false
       required:
         - eventId
         - eventType
-        - eventVersion
+        - schemaVersion
         - occurredAt
         - correlationId
+        - tenantId
+        - source
+        - dataClassification
         - payload
       properties:
-        eventId:
-          type: string
-        eventType:
-          type: string
-        eventVersion:
-          type: string
-        occurredAt:
-          type: string
-          format: date-time
-        correlationId:
-          type: string
-        causationId:
-          type: string
-        payload:
-          type: object
-
+        eventId: {type: string, format: uuid}
+        eventType: {type: string}
+        schemaVersion: {type: string, pattern: '^\d+\.\d+\.\d+$'}
+        occurredAt: {type: string, format: date-time}
+        correlationId: {type: string}
+        causationId: {type: string}
+        tenantId: {type: string}
+        source: {type: string}
+        traceparent: {type: string}
+        dataClassification: {$ref: '#/components/schemas/DataClassification'}
+        payload: {type: object}
+    RiskClassification:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, CRITICAL]
+    DataClassification:
+      type: string
+      enum: [PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED]
+    ExecutionStatus:
+      type: string
+      enum: [SUCCESS, FAILED, BLOCKED, PARTIAL]
+    AgentLifecycleEvent:
+      allOf:
+        - {$ref: '#/components/schemas/EventEnvelope'}
+        - type: object
+          properties:
+            payload: {$ref: '#/components/schemas/AgentLifecyclePayload'}
+    AgentLifecyclePayload:
+      type: object
+      required: [agentId, agentVersion, status, owner, riskClassification]
+      properties:
+        agentId: {type: string}
+        agentVersion: {type: string}
+        status: {type: string, enum: [DRAFT, SUBMITTED, APPROVED, PUBLISHED, RETIRED]}
+        owner: {type: string}
+        businessUnit: {type: string}
+        riskClassification: {$ref: '#/components/schemas/RiskClassification'}
     AgentInvokedEvent:
       allOf:
-        - $ref: '#/components/schemas/EventEnvelope'
+        - {$ref: '#/components/schemas/EventEnvelope'}
         - type: object
           properties:
-            payload:
-              $ref: '#/components/schemas/AgentInvokedPayload'
-
+            payload: {$ref: '#/components/schemas/AgentInvokedPayload'}
     AgentInvokedPayload:
       type: object
-      required:
-        - agentId
-        - agentVersion
-        - tenantId
-        - status
+      required: [agentId, agentVersion, status]
       properties:
-        agentId:
-          type: string
-        agentVersion:
-          type: string
-        tenantId:
-          type: string
-        businessUnit:
-          type: string
-        status:
-          type: string
-          enum: [SUCCESS, FAILED, PARTIAL]
-        latencyMs:
-          type: integer
-        inputTokens:
-          type: integer
-        outputTokens:
-          type: integer
-        modelProvider:
-          type: string
-        modelId:
-          type: string
-
-    AgentPublishedEvent:
-      allOf:
-        - $ref: '#/components/schemas/EventEnvelope'
-        - type: object
-          properties:
-            payload:
-              $ref: '#/components/schemas/AgentPublishedPayload'
-
-    AgentPublishedPayload:
-      type: object
-      required: [agentId, agentVersion, owner, riskClassification]
-      properties:
-        agentId:
-          type: string
-        agentVersion:
-          type: string
-        owner:
-          type: string
-        businessUnit:
-          type: string
-        riskClassification:
-          type: string
-          enum: [LOW, MEDIUM, HIGH]
-
+        agentId: {type: string}
+        agentVersion: {type: string}
+        channel: {type: string}
+        status: {$ref: '#/components/schemas/ExecutionStatus'}
+        latencyMs: {type: integer, minimum: 0}
+        inputTokens: {type: integer, minimum: 0}
+        outputTokens: {type: integer, minimum: 0}
+        costUsd: {type: number, minimum: 0}
+        evaluationStatus: {type: string}
     ToolExecutedEvent:
       allOf:
-        - $ref: '#/components/schemas/EventEnvelope'
+        - {$ref: '#/components/schemas/EventEnvelope'}
         - type: object
           properties:
-            payload:
-              $ref: '#/components/schemas/ToolExecutedPayload'
-
+            payload: {$ref: '#/components/schemas/ToolExecutedPayload'}
     ToolExecutedPayload:
       type: object
       required: [agentId, toolName, toolVersion, status]
       properties:
-        agentId:
-          type: string
-        toolName:
-          type: string
-        toolVersion:
-          type: string
-        status:
-          type: string
-          enum: [SUCCESS, FAILED]
-        latencyMs:
-          type: integer
-        errorCode:
-          type: string
-
-    KnowledgeIngestedEvent:
+        agentId: {type: string}
+        agentVersion: {type: string}
+        toolName: {type: string}
+        toolVersion: {type: string}
+        status: {$ref: '#/components/schemas/ExecutionStatus'}
+        latencyMs: {type: integer, minimum: 0}
+        operationId: {type: string}
+        errorCode: {type: string}
+        humanApproval:
+          type: object
+          properties:
+            required: {type: boolean}
+            approvedBy: {type: string}
+            approvedAt: {type: string, format: date-time}
+    ModelInvokedEvent:
       allOf:
-        - $ref: '#/components/schemas/EventEnvelope'
+        - {$ref: '#/components/schemas/EventEnvelope'}
         - type: object
           properties:
-            payload:
-              $ref: '#/components/schemas/KnowledgeIngestedPayload'
-
-    KnowledgeIngestedPayload:
+            payload: {$ref: '#/components/schemas/ModelInvokedPayload'}
+    ModelInvokedPayload:
+      type: object
+      required: [agentId, provider, modelId, status]
+      properties:
+        agentId: {type: string}
+        provider: {type: string}
+        modelId: {type: string}
+        region: {type: string}
+        status: {$ref: '#/components/schemas/ExecutionStatus'}
+        inputTokens: {type: integer, minimum: 0}
+        outputTokens: {type: integer, minimum: 0}
+        costUsd: {type: number, minimum: 0}
+        latencyMs: {type: integer, minimum: 0}
+        fallbackUsed: {type: boolean}
+    KnowledgeEvent:
+      allOf:
+        - {$ref: '#/components/schemas/EventEnvelope'}
+        - type: object
+          properties:
+            payload: {$ref: '#/components/schemas/KnowledgePayload'}
+    KnowledgePayload:
       type: object
       required: [knowledgeBaseId, documentId, status]
       properties:
-        knowledgeBaseId:
-          type: string
-        documentId:
-          type: string
-        sourceSystem:
-          type: string
-        status:
-          type: string
-          enum: [INGESTED, FAILED]
-
-    EvaluationCompletedEvent:
+        knowledgeBaseId: {type: string}
+        documentId: {type: string}
+        sourceSystem: {type: string}
+        status: {type: string, enum: [QUEUED, QUARANTINED, INGESTING, INDEXED, FAILED]}
+        embeddingModel: {type: string}
+    MemoryUpdatedEvent:
       allOf:
-        - $ref: '#/components/schemas/EventEnvelope'
+        - {$ref: '#/components/schemas/EventEnvelope'}
         - type: object
           properties:
-            payload:
-              $ref: '#/components/schemas/EvaluationCompletedPayload'
-
-    EvaluationCompletedPayload:
+            payload: {$ref: '#/components/schemas/MemoryUpdatedPayload'}
+    MemoryUpdatedPayload:
+      type: object
+      required: [sessionId, operation, expiresAt]
+      properties:
+        sessionId: {type: string}
+        operation: {type: string, enum: [UPSERT, DELETE, ANONYMIZE]}
+        expiresAt: {type: string, format: date-time}
+        itemCount: {type: integer, minimum: 0}
+    EvaluationEvent:
+      allOf:
+        - {$ref: '#/components/schemas/EventEnvelope'}
+        - type: object
+          properties:
+            payload: {$ref: '#/components/schemas/EvaluationPayload'}
+    EvaluationPayload:
       type: object
       required: [evaluationId, agentId, status]
       properties:
-        evaluationId:
-          type: string
-        agentId:
-          type: string
-        status:
-          type: string
-          enum: [APPROVED, REJECTED, WARNING]
-        groundedness:
-          type: number
-        relevance:
-          type: number
-        hallucinationRisk:
-          type: number
-        toxicity:
-          type: number
-
-    GovernanceApprovedEvent:
+        evaluationId: {type: string}
+        agentId: {type: string}
+        datasetId: {type: string}
+        status: {type: string, enum: [QUEUED, RUNNING, APPROVED, WARNING, REJECTED, FAILED]}
+        metrics:
+          type: object
+          additionalProperties: {type: number}
+    GovernanceEvent:
       allOf:
-        - $ref: '#/components/schemas/EventEnvelope'
+        - {$ref: '#/components/schemas/EventEnvelope'}
         - type: object
           properties:
-            payload:
-              $ref: '#/components/schemas/GovernanceApprovedPayload'
-
-    GovernanceApprovedPayload:
+            payload: {$ref: '#/components/schemas/GovernancePayload'}
+    GovernancePayload:
       type: object
-      required: [approvalId, agentId, approvedBy, decision]
+      required: [approvalId, agentId, decision, riskClassification]
       properties:
-        approvalId:
-          type: string
-        agentId:
-          type: string
-        approvedBy:
-          type: string
-        decision:
-          type: string
-          enum: [APPROVED, REJECTED]
-        riskClassification:
-          type: string
+        approvalId: {type: string}
+        agentId: {type: string}
+        agentVersion: {type: string}
+        decision: {type: string, enum: [APPROVED, REJECTED]}
+        riskClassification: {$ref: '#/components/schemas/RiskClassification'}
+        decidedBy: {type: string}
+        conditions:
+          type: array
+          items: {type: string}
+    AuditCreatedEvent:
+      allOf:
+        - {$ref: '#/components/schemas/EventEnvelope'}
+        - type: object
+          properties:
+            payload: {$ref: '#/components/schemas/AuditCreatedPayload'}
+    AuditCreatedPayload:
+      type: object
+      required: [auditId, action, subjectType, subjectId, outcome]
+      properties:
+        auditId: {type: string}
+        action: {type: string}
+        subjectType: {type: string}
+        subjectId: {type: string}
+        actorIdHash: {type: string}
+        outcome: {type: string, enum: [ALLOWED, DENIED, SUCCEEDED, FAILED]}
+        retentionClass: {type: string, enum: [OPERATIONAL, BILLING, AUDIT, REGULATORY]}
