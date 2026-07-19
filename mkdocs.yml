@@ -1,9 +1,11 @@
-site_name: Enterprise AI Platform
-site_description: Arquitetura de referência para plataformas corporativas de IA
+site_name: Enterprise AI Platform Book
+site_description: Estratégia, arquitetura, governança e operação de plataformas corporativas de IA
 site_url: https://leandrosflora.github.io/enterprise-ai-platform-demo-arch/
 repo_url: https://github.com/leandrosflora/enterprise-ai-platform-demo-arch
 repo_name: leandrosflora/enterprise-ai-platform-demo-arch
 edit_uri: edit/main/docs/
+
+copyright: Enterprise AI Platform Book - Leandro Silva Flora
 
 theme:
   name: material
@@ -12,14 +14,20 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.top
+    - navigation.footer
+    - navigation.indexes
     - content.code.copy
     - content.action.edit
     - search.suggest
     - search.highlight
 
+plugins:
+  - search
+
 markdown_extensions:
   - admonition
   - attr_list
+  - md_in_html
   - tables
   - toc:
       permalink: true
@@ -31,9 +39,22 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 nav:
   - Início: index.md
+  - Book:
+      - Visão geral: book/index.md
+      - 1. Por que uma AI Platform?: book/01-why-ai-platform.md
+      - 2. Capability Map: book/02-capability-map.md
+      - 3. Operating Model: book/03-operating-model.md
+      - 4. Ciclo de vida de agentes: book/04-agent-lifecycle.md
+      - 5. Caso de agente documental: book/05-case-study-document-agent.md
+      - 6. Decision Guides: book/06-decision-guides.md
+      - 7. Maturidade e roadmap: book/07-adoption-roadmap.md
+      - 8. Checklists de produção: book/08-production-checklists.md
+      - Glossário: book/glossary.md
   - Arquitetura:
       - Princípios: architecture/principles/principles.md
       - Requisitos não funcionais: architecture/non-functional-requirements.md
@@ -70,4 +91,4 @@ nav:
       - Onboarding de agente: runbooks/onboarding-agent.md
       - Onboarding MCP: runbooks/onboarding-mcp.md
       - Troubleshooting: runbooks/troubleshooting-agent-invocation.md
-  - Roadmap: roadmap/implementation-roadmap.md
+  - Roadmap técnico: roadmap/implementation-roadmap.md

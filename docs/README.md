@@ -1,23 +1,25 @@
 # Documentação
 
-Esta pasta contém a arquitetura de referência, contratos executáveis, controles de governança e guias operacionais da Enterprise AI Platform.
+Esta pasta contém o **Enterprise AI Platform Book**, a arquitetura de referência, contratos executáveis, policies, controles de governança e guias operacionais.
 
-## Comece por aqui
+## Comece pelo book
 
-1. [Visão geral](index.md)
-2. [Princípios arquiteturais](architecture/principles/principles.md)
-3. [Control plane e data plane](architecture/control-plane-data-plane.md)
-4. [Requisitos não funcionais](architecture/non-functional-requirements.md)
-5. [Contratos HTTP](contracts/openapi.yaml)
-6. [Contratos de eventos](contracts/async-api.yaml)
-7. [AI Risk Framework](governance/ai-risk-framework.md)
-8. [Segurança de RAG e memória](security/rag-memory-security.md)
-9. [Tracing e SLOs](observability/tracing.md)
+1. [Entrada do livro](book/index.md)
+2. [Por que uma AI Platform?](book/01-why-ai-platform.md)
+3. [Capability Map](book/02-capability-map.md)
+4. [Operating Model](book/03-operating-model.md)
+5. [Ciclo de vida de agentes](book/04-agent-lifecycle.md)
+6. [Estudo de caso de agente documental](book/05-case-study-document-agent.md)
+7. [Decision Guides](book/06-decision-guides.md)
+8. [Roadmap de adoção](book/07-adoption-roadmap.md)
+9. [Checklists de produção](book/08-production-checklists.md)
+10. [Glossário](book/glossary.md)
 
 ## Estrutura
 
 ```text
-architecture/             Princípios, NFRs, C4 e decisões de separação de planos
+book/                     Narrativa, operating model, casos, decisões e checklists
+architecture/             Princípios, NFRs, C4 e separação de planos
 adr/                      Architecture Decision Records
 contracts/                OpenAPI, AsyncAPI, MCP, eventos e data stores
 domains/                  Domínios funcionais da plataforma
@@ -29,8 +31,16 @@ finops/                   Custos, budgets, chargeback e showback
 runbooks/                 Procedimentos operacionais e troubleshooting
 examples/                 Exemplos ponta a ponta
 reference-architectures/  Blueprints por caso de uso
-roadmap/                  Sequenciamento de implantação
+roadmap/                  Sequenciamento técnico de implantação
 ```
+
+## Relação entre book e referência
+
+- O **book** explica problema, decisão, trade-offs, operating model e critérios de sucesso.
+- A **referência técnica** define contratos, policies, componentes, eventos e procedimentos.
+- A **vertical slice** demonstra partes dos controles de forma executável.
+
+O conteúdo editorial não pode redefinir enums, envelopes, policies ou metas diferentes das fontes canônicas.
 
 ## Fontes canônicas
 
@@ -43,8 +53,6 @@ roadmap/                  Sequenciamento de implantação
 | Controles de risco | [`governance/ai-risk-framework.md`](governance/ai-risk-framework.md) |
 | Autorização | [`security/authorization.md`](security/authorization.md) |
 | Segurança de RAG e memória | [`security/rag-memory-security.md`](security/rag-memory-security.md) + [`../policies/rag-memory-security.yaml`](../policies/rag-memory-security.yaml) |
-
-Exemplos e documentos derivados não podem redefinir enums, envelopes, controles obrigatórios ou metas diferentes das fontes canônicas.
 
 ## Arquitetura
 
@@ -74,13 +82,23 @@ Exemplos e documentos derivados não podem redefinir enums, envelopes, controles
 - [Onboarding MCP](runbooks/onboarding-mcp.md)
 - [Troubleshooting de invocação](runbooks/troubleshooting-agent-invocation.md)
 
-## Validação
+## Gerar o book
 
 Na raiz do repositório:
 
 ```bash
+python scripts/build_book.py --check
+python scripts/build_book.py
+```
+
+O PDF é gerado automaticamente pelo workflow `.github/workflows/book.yml` usando Pandoc e WeasyPrint.
+
+## Validação
+
+```bash
 python scripts/validate_contracts.py
 python scripts/validate_docs.py
+python scripts/build_book.py --check
 bash scripts/render_diagrams.sh
 mkdocs build
 ```

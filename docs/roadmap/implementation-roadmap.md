@@ -4,15 +4,23 @@
 
 A referência já contém:
 
+- Enterprise AI Platform Book com jornadas por perfil;
+- capability map e fronteiras de responsabilidade;
+- operating model, RACI, fóruns e golden path;
+- ciclo de vida de agentes baseado em risco e evidências;
+- estudo de caso ponta a ponta de agente documental com RAG;
+- decision guides e checklists de produção;
+- exportação automatizada do book para Markdown e PDF;
 - contratos OpenAPI e AsyncAPI canônicos;
-- validações de contrato e integridade documental em CI;
+- policies e validações de contrato em CI;
 - C4 de container e deployment com control plane/data plane;
 - Model Gateway explícito;
+- segurança executável de RAG e memória;
 - runbooks operacionais;
 - vertical slice executável com Docker Compose;
 - documentação publicável via MkDocs e GitHub Pages.
 
-A vertical slice é deliberadamente pequena. As fases abaixo descrevem a evolução para produção.
+A vertical slice é deliberadamente pequena. As fases abaixo descrevem a evolução de uma implementação real para produção.
 
 ## Fase 1 — Foundation
 
@@ -127,3 +135,5 @@ Criar o data plane mínimo para execução controlada de agentes.
 | 3 | 6–9 meses | tools corporativas governadas |
 | 4 | 9–12 meses | publicação baseada em risco e evidências |
 | 5 | 12+ meses | escala, marketplace e controle financeiro |
+
+Para a perspectiva organizacional e de adoção, consulte [Modelo de maturidade e roadmap](../book/07-adoption-roadmap.md).

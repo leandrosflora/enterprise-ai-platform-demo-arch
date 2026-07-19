@@ -1,0 +1,86 @@
+name: Book
+
+on:
+  pull_request:
+    paths:
+      - 'docs/book/**'
+      - 'scripts/build_book.py'
+      - '.github/workflows/book.yml'
+      - 'mkdocs.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/book/**'
+      - 'scripts/build_book.py'
+      - '.github/workflows/book.yml'
+      - 'mkdocs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: book-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-book:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install PDF dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes pandoc poppler-utils fonts-dejavu-core
+          pip install weasyprint
+
+      - name: Validate book manifest
+        run: python scripts/build_book.py --check
+
+      - name: Build consolidated manuscript
+        run: python scripts/build_book.py
+
+      - name: Export PDF
+        run: |
+          pandoc build/book/enterprise-ai-platform-book.md \
+            --from=gfm+raw_html \
+            --standalone \
+            --pdf-engine=weasyprint \
+            --css=docs/book/book.css \
+            --resource-path=.:docs:docs/book \
+            --output=build/book/enterprise-ai-platform-book.pdf
+
+      - name: Verify PDF structure
+        run: |
+          test -s build/book/enterprise-ai-platform-book.pdf
+          pdfinfo build/book/enterprise-ai-platform-book.pdf
+          pages=$(pdfinfo build/book/enterprise-ai-platform-book.pdf | awk '/^Pages:/ {print $2}')
+          test "${pages}" -ge 10
+
+      - name: Render preview pages
+        run: |
+          mkdir -p build/book/preview
+          pdftoppm \
+            -f 1 \
+            -l 6 \
+            -png \
+            -r 120 \
+            build/book/enterprise-ai-platform-book.pdf \
+            build/book/preview/page
+
+      - name: Upload book artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enterprise-ai-platform-book
+          path: |
+            build/book/enterprise-ai-platform-book.md
+            build/book/enterprise-ai-platform-book.pdf
+            build/book/preview/*.png
+          retention-days: 30
+          if-no-files-found: error
