@@ -1,16 +1,24 @@
-# Enterprise AI Platform — Book e Arquitetura de Referência
+# Enterprise AI Platform — Book de Referência
 
 [![Quality](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/quality.yml/badge.svg)](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/quality.yml)
 [![Docs](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/docs.yml/badge.svg)](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/docs.yml)
 [![Book](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/book.yml/badge.svg)](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/book.yml)
 
-Um **book executável** sobre como projetar, governar, implantar e operar uma plataforma corporativa de IA com agentes, RAG, memória, MCP, governança, evaluation, observabilidade, segurança e FinOps.
+Um **book de referência para orientar o desenho, a governança, a implementação e a operação de plataformas corporativas de IA**.
 
-O repositório combina três camadas:
+O repositório organiza estratégia, capacidades, decisões arquiteturais, operating model, contratos, controles e caminhos de adoção para organizações que precisam construir sua própria Enterprise AI Platform.
+
+## Natureza e objetivo
+
+Este repositório é uma **referência documental e arquitetural**. Ele não entrega uma plataforma pronta, não representa uma distribuição de software e não prescreve uma implementação tecnológica única.
+
+Os componentes e serviços descritos representam capacidades lógicas que devem ser adaptadas ao contexto, aos riscos, à maturidade e às tecnologias de cada organização.
+
+O conteúdo fornece:
 
 - **Book:** narrativa, decisões, operating model, estudos de caso e checklists;
 - **Arquitetura de referência:** princípios, C4, ADRs, contratos, policies e runbooks;
-- **Vertical slice executável:** demo mínima de cadastro, governança, publicação e invocação de agente.
+- **Amostra de validação:** vertical slice mínima para verificar contratos e alguns controles documentados, sem pretensão de representar uma implementação produtiva.
 
 ## Leia como livro
 
@@ -20,13 +28,14 @@ Comece em [Enterprise AI Platform Book](docs/book/index.md).
 |---|---|
 | Executivo | [Por que uma AI Platform?](docs/book/01-why-ai-platform.md) → [Capability Map](docs/book/02-capability-map.md) → [Roadmap](docs/book/07-adoption-roadmap.md) |
 | Arquiteto | [Capability Map](docs/book/02-capability-map.md) → [Operating Model](docs/book/03-operating-model.md) → [Decision Guides](docs/book/06-decision-guides.md) |
+| Engenharia de plataforma | [Capability Map](docs/book/02-capability-map.md) → [Lifecycle](docs/book/04-agent-lifecycle.md) → [Checklists](docs/book/08-production-checklists.md) |
 | Product squad | [Lifecycle](docs/book/04-agent-lifecycle.md) → [Caso RAG](docs/book/05-case-study-document-agent.md) → [Checklists](docs/book/08-production-checklists.md) |
 | Segurança e LGPD | [Operating Model](docs/book/03-operating-model.md) → [Lifecycle](docs/book/04-agent-lifecycle.md) → [Segurança de RAG e memória](docs/security/rag-memory-security.md) |
 | SRE e FinOps | [Capability Map](docs/book/02-capability-map.md) → [Roadmap](docs/book/07-adoption-roadmap.md) → [Checklists](docs/book/08-production-checklists.md) |
 
 A pipeline `book.yml` gera automaticamente o manuscrito consolidado, o PDF e previews renderizados como artifact do GitHub Actions.
 
-## Visão da plataforma
+## Visão da plataforma de referência
 
 ```mermaid
 flowchart LR
@@ -48,61 +57,22 @@ flowchart LR
     CP --> MG
 ```
 
-## Quickstart da vertical slice
-
-### Pré-requisitos
-
-- Docker Engine 24+
-- Docker Compose v2
-- `curl`
-
-### Subir a demo
-
-```bash
-cd samples/vertical-slice
-docker compose up --build
-```
-
-Em outro terminal:
-
-```bash
-bash scripts/demo.sh
-```
-
-A demo percorre:
-
-1. cadastro de um agente;
-2. submissão e aprovação com segregação de funções;
-3. publicação da versão;
-4. ingestão e retrieval seguros;
-5. invocação com resposta citada;
-6. memória com controles de TTL, consentimento e isolamento;
-7. eventos, métricas e traces.
-
-### Endpoints locais
-
-| Recurso | URL |
-|---|---|
-| API | `http://localhost:8080` |
-| Swagger | `http://localhost:8080/docs` |
-| Jaeger | `http://localhost:16686` |
-| Prometheus | `http://localhost:9090` |
-| Redpanda Console | `http://localhost:8081` |
+O diagrama representa uma decomposição lógica. Ele não determina quantidade de serviços, tecnologia, produto ou topologia de implantação.
 
 ## Estado dos artefatos
 
-| Área | Status | Fonte principal |
+| Área | Natureza | Fonte principal |
 |---|---|---|
-| Book | narrativa e checklists versionados | `docs/book/` |
-| APIs HTTP | implementável e validada em CI | `docs/contracts/openapi.yaml` |
-| Eventos Kafka | implementável e validada em CI | `docs/contracts/async-api.yaml` |
-| Policies | executáveis e validadas em CI | `policies/` |
-| C4 | PlantUML validado em CI | `docs/architecture/diagrams/` |
-| Governança e risco | referência operacional | `docs/governance/` |
-| Segurança de RAG e memória | padrão + policy + testes negativos | `docs/security/rag-memory-security.md` |
-| Observabilidade e SLOs | referência operacional | `docs/observability/` |
-| Demo executável | vertical slice, não produção | `samples/vertical-slice/` |
-| PDF | gerado automaticamente pelo workflow Book | `.github/workflows/book.yml` |
+| Book | narrativa e orientação para implementação | `docs/book/` |
+| APIs HTTP | contratos de referência validados em CI | `docs/contracts/openapi.yaml` |
+| Eventos Kafka | contratos de referência validados em CI | `docs/contracts/async-api.yaml` |
+| Policies | controles de referência validados em CI | `policies/` |
+| C4 | modelos arquiteturais validados em CI | `docs/architecture/diagrams/` |
+| Governança e risco | modelo operacional de referência | `docs/governance/` |
+| Segurança de RAG e memória | padrão, policy e testes negativos | `docs/security/rag-memory-security.md` |
+| Observabilidade e SLOs | diretrizes operacionais de referência | `docs/observability/` |
+| Amostra técnica | validação de contratos e controles, não produção | `samples/vertical-slice/` |
+| PDF | publicação automatizada do book | `.github/workflows/book.yml` |
 
 ## Mapa da documentação técnica
 
@@ -114,10 +84,10 @@ A demo percorre:
 - [Modelo C4](docs/architecture/diagrams/)
 - [ADRs](docs/adr/)
 
-### Domínios e serviços
+### Domínios e capacidades
 
 - [Domínios](docs/domains/)
-- [Serviços](docs/services/)
+- [Serviços de referência](docs/services/)
 - [Model Gateway](docs/services/model-gateway.md)
 - [Knowledge Service](docs/services/knowledge-service.md)
 - [Memory Service](docs/services/memory-service.md)
@@ -138,7 +108,28 @@ A demo percorre:
 - [Threat Model](docs/security/threat-model.md)
 - [Tracing e SLOs](docs/observability/tracing.md)
 - [Runbooks](docs/runbooks/)
-- [Roadmap técnico](docs/roadmap/implementation-roadmap.md)
+- [Roadmap para implementação](docs/roadmap/implementation-roadmap.md)
+
+## Amostra técnica de validação
+
+A pasta `samples/vertical-slice/` contém uma amostra mínima para exercitar contratos, estados do lifecycle, segregação de funções, retrieval seguro, memória e telemetria.
+
+Ela funciona como **especificação executável de apoio à documentação**. Não deve ser interpretada como arquitetura física recomendada ou base de uma plataforma produtiva.
+
+### Execução opcional
+
+```bash
+cd samples/vertical-slice
+docker compose up --build
+```
+
+Em outro terminal:
+
+```bash
+bash scripts/demo.sh
+```
+
+A amostra percorre cadastro, submissão, aprovação, publicação, retrieval seguro, memória, eventos, métricas e traces.
 
 ## Qualidade automatizada
 
@@ -149,7 +140,7 @@ A pipeline `quality.yml` executa:
 - verificação do manifest do book;
 - verificação de links e integridade documental;
 - compilação dos diagramas PlantUML;
-- testes da vertical slice;
+- testes da amostra técnica;
 - validação do Docker Compose;
 - build do site MkDocs.
 
@@ -161,9 +152,11 @@ A pipeline `book.yml` executa:
 - renderização das páginas iniciais;
 - publicação do manuscrito, PDF e previews como artifact.
 
-## Limites da demo
+## Limites da referência
 
-A vertical slice usa armazenamento em memória e respostas determinísticas. Ela prova fluxos, contratos e controles, mas não substitui implementação produtiva. Persistência, IdP corporativo, KMS, políticas de rede, alta disponibilidade, sizing e integrações reais devem seguir os artefatos de arquitetura e o contexto da organização.
+Este material não substitui threat modeling específico, análise jurídica, sizing, homologação de fornecedores, testes de carga ou desenho detalhado de infraestrutura.
+
+Persistência, IdP corporativo, KMS, políticas de rede, alta disponibilidade, topologia, escolha de provedores e integrações reais devem ser definidos durante a implementação de cada organização.
 
 ## Contribuição e segurança
 
