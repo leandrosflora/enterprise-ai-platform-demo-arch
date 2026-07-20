@@ -1,11 +1,11 @@
-site_name: Enterprise AI Platform Book
-site_description: Estratégia, arquitetura, governança e operação de plataformas corporativas de IA
+site_name: Enterprise AI Platform Reference Book
+site_description: Referência para desenho, governança, implementação e operação de plataformas corporativas de IA
 site_url: https://leandrosflora.github.io/enterprise-ai-platform-demo-arch/
 repo_url: https://github.com/leandrosflora/enterprise-ai-platform-demo-arch
 repo_name: leandrosflora/enterprise-ai-platform-demo-arch
 edit_uri: edit/main/docs/
 
-copyright: Enterprise AI Platform Book - Leandro Silva Flora
+copyright: Enterprise AI Platform Reference Book - Leandro Silva Flora
 
 theme:
   name: material
