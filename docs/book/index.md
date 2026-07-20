@@ -1,8 +1,10 @@
 # Enterprise AI Platform Book
 
-Este livro descreve como projetar, governar, implantar e operar uma plataforma corporativa de IA. Ele conecta estratégia, arquitetura, segurança, delivery e operação usando os artefatos executáveis deste repositório como apêndices técnicos.
+Este livro é uma **referência para orientar o desenho, a governança, a implementação e a operação de uma plataforma corporativa de IA**. Ele conecta estratégia, arquitetura, segurança, delivery e operação por meio de modelos, decisões, contratos e controles adaptáveis ao contexto de cada organização.
 
-A proposta não é apresentar uma única implementação obrigatória. O objetivo é fornecer um modelo mental, decisões explícitas, controles mínimos e caminhos de evolução que possam ser adaptados ao contexto de cada organização.
+A proposta não é entregar uma plataforma pronta, uma distribuição de software ou uma implementação tecnológica obrigatória. O objetivo é fornecer um modelo mental, decisões explícitas, controles mínimos e caminhos de evolução que apoiem cada organização na construção da sua própria plataforma.
+
+Os componentes e serviços descritos representam uma decomposição lógica de capacidades. Eles podem ser implementados com diferentes produtos, provedores, topologias e níveis de granularidade.
 
 ## O que você encontrará
 
@@ -14,7 +16,7 @@ A proposta não é apresentar uma única implementação obrigatória. O objetiv
 - decision guides para escolhas arquiteturais recorrentes;
 - um modelo de maturidade e roadmap de adoção;
 - checklists de readiness para produção;
-- contratos, diagramas, políticas e código executável como material de referência.
+- contratos, diagramas, policies e amostras técnicas como material de referência.
 
 ## Caminhos de leitura
 
@@ -41,19 +43,21 @@ A proposta não é apresentar uma única implementação obrigatória. O objetiv
 
 ## Como usar os artefatos técnicos
 
-Os capítulos explicam contexto, decisões e consequências. Os diretórios técnicos permanecem como fontes canônicas:
+Os capítulos explicam contexto, decisões e consequências. Os diretórios técnicos permanecem como fontes canônicas de referência:
 
 | Assunto | Referência técnica |
 |---|---|
 | Princípios, C4 e NFRs | [`../architecture/`](../architecture/) |
 | APIs, eventos e MCP | [`../contracts/`](../contracts/) |
-| Serviços da plataforma | [`../services/`](../services/) |
+| Capacidades e serviços lógicos | [`../services/`](../services/) |
 | Governança e risco | [`../governance/`](../governance/) |
 | Segurança | [`../security/`](../security/) |
 | Observabilidade e SLOs | [`../observability/`](../observability/) |
 | FinOps | [`../finops/`](../finops/) |
-| Runbooks | [`../runbooks/`](../runbooks/) |
-| Vertical slice executável | [`../../samples/vertical-slice/`](../../samples/vertical-slice/) |
+| Runbooks de referência | [`../runbooks/`](../runbooks/) |
+| Amostra de validação | [`../../samples/vertical-slice/`](../../samples/vertical-slice/) |
+
+A amostra técnica existe para verificar contratos e alguns controles documentados. Ela não representa uma arquitetura física recomendada nem uma implementação produtiva da plataforma.
 
 ## Convenção dos capítulos
 
@@ -67,4 +71,4 @@ Cada capítulo procura responder cinco perguntas:
 
 ## Escopo e limites
 
-Este material é uma arquitetura de referência. Ele não substitui threat modeling específico, análise jurídica, sizing, homologação de fornecedores, testes de carga ou desenho detalhado de infraestrutura. As decisões devem ser reavaliadas quando o risco, o volume, a criticidade ou a regulamentação mudarem.
+Este material é uma arquitetura de referência para implementação. Ele não substitui threat modeling específico, análise jurídica, sizing, homologação de fornecedores, testes de carga ou desenho detalhado de infraestrutura. As decisões devem ser reavaliadas quando o risco, o volume, a criticidade ou a regulamentação mudarem.
