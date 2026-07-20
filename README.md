@@ -6,9 +6,9 @@
 
 ## Visão rápida
 
-[![Assista à apresentação do Enterprise AI Platform Reference Book](media/enterprise-ai-platform-reference-book.gif)](media/enterprise-ai-platform-reference-book.mp4)
+<a href="media/enterprise-ai-platform-reference-book.mp4"><img src="media/enterprise-ai-platform-overview.svg" alt="Enterprise AI Platform — arquitetura, observabilidade e reference book" width="100%"></a>
 
-> Clique na animação para assistir ao vídeo completo de 15 segundos.
+> Visão rápida da arquitetura, tracing, logs, métricas e reference book. Clique na imagem para assistir ao vídeo de 15 segundos.
 
 Um **book de referência para orientar o desenho, a governança, a implementação e a operação de plataformas corporativas de IA**.
 
