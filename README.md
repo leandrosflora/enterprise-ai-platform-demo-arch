@@ -4,6 +4,12 @@
 [![Docs](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/docs.yml/badge.svg)](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/docs.yml)
 [![Book](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/book.yml/badge.svg)](https://github.com/leandrosflora/enterprise-ai-platform-demo-arch/actions/workflows/book.yml)
 
+## Visão rápida
+
+[![Assista à apresentação do Enterprise AI Platform Reference Book](media/enterprise-ai-platform-reference-book.gif)](media/enterprise-ai-platform-reference-book.mp4)
+
+> Clique na animação para assistir ao vídeo completo de 15 segundos.
+
 Um **book de referência para orientar o desenho, a governança, a implementação e a operação de plataformas corporativas de IA**.
 
 O repositório organiza estratégia, capacidades, decisões arquiteturais, operating model, contratos, controles e caminhos de adoção para organizações que precisam construir sua própria Enterprise AI Platform.
