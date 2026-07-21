@@ -1,6 +1,6 @@
 # Case aplicado — Plataforma conversacional para renegociação
 
-**Repositório:** [conversational-ai-demo-arch](https://github.com/leandrosflora/conversational-ai-demo-arch)
+**Repositório:** [conversational-ai-platform-architecture](https://github.com/leandrosflora/conversational-ai-platform-architecture)
 
 Este case demonstra como capacidades da Enterprise AI Platform Reference Architecture podem ser materializadas em uma jornada conversacional de renegociação via WhatsApp.
 
