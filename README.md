@@ -13,7 +13,7 @@
 
 Uma **arquitetura de referência para orientar o desenho, a governança, a implementação e a operação de plataformas corporativas de IA**.
 
-O repositório organiza estratégia, capacidades, decisões arquiteturais, operating model, contratos, controles e caminhos de adoção para organizações que precisam construir sua própria Enterprise AI Platform.
+O repositório organiza estratégia, business outcomes, capacidades, decisões arquiteturais, operating model, contratos, controles e caminhos de adoção para organizações que precisam construir sua própria Enterprise AI Platform.
 
 ## Natureza e objetivo
 
@@ -33,7 +33,7 @@ Comece em [Enterprise AI Platform Book](docs/book/index.md).
 
 | Perfil | Caminho recomendado |
 |---|---|
-| Executivo | [Por que uma AI Platform?](docs/book/01-why-ai-platform.md) → [Capability Map](docs/book/02-capability-map.md) → [Roadmap](docs/book/07-adoption-roadmap.md) |
+| Executivo | [Por que uma AI Platform?](docs/book/01-why-ai-platform.md) → [Business Outcomes](docs/book/02-business-outcomes.md) → [Capability Map](docs/book/02-capability-map.md) → [Roadmap](docs/book/07-adoption-roadmap.md) |
 | Arquiteto | [Capability Map](docs/book/02-capability-map.md) → [Operating Model](docs/book/03-operating-model.md) → [Decision Guides](docs/book/06-decision-guides.md) |
 | Engenharia de plataforma | [Capability Map](docs/book/02-capability-map.md) → [Lifecycle](docs/book/04-agent-lifecycle.md) → [Checklists](docs/book/08-production-checklists.md) |
 | Product squad | [Lifecycle](docs/book/04-agent-lifecycle.md) → [Caso RAG](docs/book/05-case-study-document-agent.md) → [Checklists](docs/book/08-production-checklists.md) |
@@ -82,6 +82,10 @@ O diagrama representa uma decomposição lógica. Ele não determina quantidade 
 | PDF | publicação automatizada do book | `.github/workflows/book.yml` |
 
 ## Mapa da documentação técnica
+
+### Estratégia e outcomes
+
+- [Business Outcomes e Value Realization](docs/book/02-business-outcomes.md)
 
 ### Arquitetura
 
