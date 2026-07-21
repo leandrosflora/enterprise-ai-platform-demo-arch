@@ -1,4 +1,4 @@
-# 5. Estudo de caso: agente documental com RAG
+# 6. Estudo de caso: agente documental com RAG
 
 ## Contexto
 
