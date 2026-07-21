@@ -59,11 +59,22 @@ nav:
       - Princípios: architecture/principles/principles.md
       - Requisitos não funcionais: architecture/non-functional-requirements.md
       - Control plane e data plane: architecture/control-plane-data-plane.md
+      - C4 completo e publicação: architecture/c4-complete.md
+      - Trade-off Guides: architecture/trade-off-guides.md
       - Decision Matrix: architecture/ai-decision-matrix.md
       - Model Selection Framework: architecture/model-selection-framework.md
       - Prompt Engineering Guide: architecture/prompt-engineering-guide.md
       - Hallucination Strategies: architecture/hallucination-strategies.md
       - Event Storming: architecture/diagrams/event-storming.md
+  - ADRs:
+      - Visão geral: adrs/index.md
+      - MCP em vez de REST direto: adrs/001-mcp-vs-rest.md
+      - Memória persistente: adrs/002-persistent-memory.md
+      - Agent Gateway: adrs/003-agent-gateway.md
+  - Casos aplicados:
+      - IA conversacional para renegociação: case-studies/conversational-ai.md
+  - FinOps:
+      - FinOps para IA: finops/ai-finops.md
   - Contratos:
       - Convenções de eventos: contracts/events.md
       - APIs: contracts/apis.md
