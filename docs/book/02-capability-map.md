@@ -1,4 +1,4 @@
-# 2. Capability Map
+# 3. Capability Map
 
 ## Por que começar por capacidades
 
