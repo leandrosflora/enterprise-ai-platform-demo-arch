@@ -18,9 +18,9 @@ Ele combina narrativa editorial, modelos arquiteturais, contratos, policies, che
 
     ---
 
-    Entenda quando uma plataforma é necessária, quais capacidades ela oferece e como organizar o investimento.
+    Entenda por que a plataforma é necessária e conecte estratégia, outcomes, capacidades e investimento.
 
-    [Começar pelo problema](book/01-why-ai-platform.md)
+    [Começar pelos outcomes](book/02-business-outcomes.md)
 
 -   :material-sitemap-outline: **Arquitetura**
 
@@ -67,14 +67,15 @@ Ele combina narrativa editorial, modelos arquiteturais, contratos, policies, che
 ## Livro
 
 1. [Por que uma AI Platform?](book/01-why-ai-platform.md)
-2. [Capability Map](book/02-capability-map.md)
-3. [Operating Model](book/03-operating-model.md)
-4. [Ciclo de vida de agentes](book/04-agent-lifecycle.md)
-5. [Estudo de caso: agente documental com RAG](book/05-case-study-document-agent.md)
-6. [Decision Guides](book/06-decision-guides.md)
-7. [Modelo de maturidade e roadmap](book/07-adoption-roadmap.md)
-8. [Checklists de produção](book/08-production-checklists.md)
-9. [Glossário](book/glossary.md)
+2. [Business Outcomes](book/02-business-outcomes.md)
+3. [Capability Map](book/02-capability-map.md)
+4. [Operating Model](book/03-operating-model.md)
+5. [Ciclo de vida de agentes](book/04-agent-lifecycle.md)
+6. [Estudo de caso: agente documental com RAG](book/05-case-study-document-agent.md)
+7. [Decision Guides](book/06-decision-guides.md)
+8. [Modelo de maturidade e roadmap](book/07-adoption-roadmap.md)
+9. [Checklists de produção](book/08-production-checklists.md)
+10. [Glossário](book/glossary.md)
 
 ## Arquitetura resumida
 
