@@ -102,6 +102,6 @@ Authorization: Bearer <token>
 
 ## Decisões Relacionadas
 
-- [ADR-001 Agent Runtime Strategy](../adr/ADR-001-agent-runtime-strategy.md)
-- [ADR-003 MCP Strategy](../adr/ADR-003-mcp-strategy.md)
-- [ADR-004 Observability Strategy](../adr/ADR-004-observability-strategy.md)
+- [ADR-004 — Agent Runtime com núcleo estável e adaptadores](../adrs/004-agent-runtime-strategy.md)
+- [ADR-001 — MCP para tool calling governado](../adrs/001-mcp-vs-rest.md)
+- [ADR-006 — OpenTelemetry como padrão de observabilidade](../adrs/006-observability-strategy.md)

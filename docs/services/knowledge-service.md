@@ -161,5 +161,5 @@ Reindexação cria nova versão imutável e invalida a anterior. O índice preci
 
 ## Decisões Relacionadas
 
-- [ADR-002 Vector Database Selection](../adr/ADR-002-vector-database-selection.md)
-- [ADR-005 Evaluation Framework](../adr/ADR-005-evaluation-framework.md)
+- [ADR-005 — Estratégia de busca vetorial e híbrida](../adrs/005-vector-search-strategy.md)
+- [ADR-007 — Avaliação híbrida e contínua de IA](../adrs/007-evaluation-strategy.md)

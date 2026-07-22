@@ -42,17 +42,17 @@ Ele combina narrativa editorial, modelos arquiteturais, contratos, policies, che
 
     ---
 
-    Estruture gates, evidências, avaliação, publicação, operação e retirada de agentes.
+    Estruture gates, evidências, avaliação, publicação, operação e retirada de agentes e ativos de IA.
 
-    [Abrir o lifecycle](book/04-agent-lifecycle.md)
+    [Abrir o lifecycle de ativos](governance/model-lifecycle.md)
 
 -   :material-shield-check-outline: **Segurança e governança**
 
     ---
 
-    Aplique autorização, threat modeling, segurança de RAG, memória, LGPD e AI Risk Framework.
+    Aplique controles rastreáveis, autorização, threat modeling, segurança de RAG, memória, LGPD e AI Risk Framework.
 
-    [Ver segurança de RAG e memória](security/rag-memory-security.md)
+    [Abrir o crosswalk de compliance](governance/compliance-crosswalk.md)
 
 -   :material-flask-outline: **Estudo de caso**
 
@@ -114,8 +114,11 @@ A decomposição acima é lógica. Ela não determina quantidade de serviços, t
 
 | Assunto | Fonte |
 |---|---|
+| Decisões arquiteturais | [Catálogo de ADRs](adrs/index.md) |
 | APIs HTTP | [OpenAPI](contracts/openapi.yaml) |
 | Eventos | [AsyncAPI](contracts/async-api.yaml) |
+| Governança e compliance | [Crosswalk](governance/compliance-crosswalk.md) |
+| Lifecycle de ativos de IA | [Data, Model, Prompt and Knowledge Lifecycle](governance/model-lifecycle.md) |
 | Segurança de RAG e memória | [Padrão](security/rag-memory-security.md) |
 | Risco | [AI Risk Framework](governance/ai-risk-framework.md) |
 | SLOs | [Requisitos não funcionais](architecture/non-functional-requirements.md) |

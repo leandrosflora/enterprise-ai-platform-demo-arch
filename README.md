@@ -25,6 +25,8 @@ O conteúdo fornece:
 
 - **Book:** narrativa, decisões, operating model, estudos de caso e checklists;
 - **Arquitetura de referência:** princípios, C4, ADRs, contratos, policies e runbooks;
+- **Governança auditável:** crosswalk de controles, evidências, owners, gates e enforcement;
+- **Lifecycle de ativos de IA:** dados, datasets, modelos, prompts, embeddings e knowledge snapshots;
 - **Amostra de validação:** vertical slice mínima para verificar contratos e alguns controles documentados, sem pretensão de representar uma implementação produtiva.
 
 ## Leia como livro
@@ -37,7 +39,7 @@ Comece em [Enterprise AI Platform Book](docs/book/index.md).
 | Arquiteto | [Capability Map](docs/book/02-capability-map.md) → [Operating Model](docs/book/03-operating-model.md) → [Decision Guides](docs/book/06-decision-guides.md) |
 | Engenharia de plataforma | [Capability Map](docs/book/02-capability-map.md) → [Lifecycle](docs/book/04-agent-lifecycle.md) → [Checklists](docs/book/08-production-checklists.md) |
 | Product squad | [Lifecycle](docs/book/04-agent-lifecycle.md) → [Caso RAG](docs/book/05-case-study-document-agent.md) → [Checklists](docs/book/08-production-checklists.md) |
-| Segurança e LGPD | [Operating Model](docs/book/03-operating-model.md) → [Lifecycle](docs/book/04-agent-lifecycle.md) → [Segurança de RAG e memória](docs/security/rag-memory-security.md) |
+| Segurança e LGPD | [Operating Model](docs/book/03-operating-model.md) → [Crosswalk](docs/governance/compliance-crosswalk.md) → [Segurança de RAG e memória](docs/security/rag-memory-security.md) |
 | SRE e FinOps | [Capability Map](docs/book/02-capability-map.md) → [Roadmap](docs/book/07-adoption-roadmap.md) → [Checklists](docs/book/08-production-checklists.md) |
 
 A pipeline `book.yml` gera automaticamente o manuscrito consolidado, o PDF e previews renderizados como artifact do GitHub Actions.
@@ -75,7 +77,10 @@ O diagrama representa uma decomposição lógica. Ele não determina quantidade 
 | Eventos Kafka | contratos de referência validados em CI | `docs/contracts/async-api.yaml` |
 | Policies | controles de referência validados em CI | `policies/` |
 | C4 | modelos arquiteturais validados em CI | `docs/architecture/diagrams/` |
+| ADRs | catálogo canônico com IDs únicos e migração do legado | `docs/adrs/` |
 | Governança e risco | modelo operacional de referência | `docs/governance/` |
+| Crosswalk de compliance | controles, evidências, owners e frameworks | `docs/governance/compliance-crosswalk.md` |
+| Lifecycle de ativos | dados, modelos, prompts e conhecimento | `docs/governance/model-lifecycle.md` |
 | Segurança de RAG e memória | padrão, policy e testes negativos | `docs/security/rag-memory-security.md` |
 | Observabilidade e SLOs | diretrizes operacionais de referência | `docs/observability/` |
 | Amostra técnica | validação de contratos e controles, não produção | `samples/vertical-slice/` |
@@ -93,7 +98,7 @@ O diagrama representa uma decomposição lógica. Ele não determina quantidade 
 - [Requisitos não funcionais](docs/architecture/non-functional-requirements.md)
 - [Control plane e data plane](docs/architecture/control-plane-data-plane.md)
 - [Modelo C4](docs/architecture/diagrams/)
-- [ADRs](docs/adr/)
+- [ADRs](docs/adrs/)
 
 ### Domínios e capacidades
 
@@ -113,6 +118,9 @@ O diagrama representa uma decomposição lógica. Ele não determina quantidade 
 
 ### Governança, segurança e operação
 
+- [Enterprise AI Governance Framework](docs/governance/ai-governance-framework.md)
+- [Crosswalk de Governança, Risco e Compliance](docs/governance/compliance-crosswalk.md)
+- [Data, Model, Prompt and Knowledge Lifecycle](docs/governance/model-lifecycle.md)
 - [AI Risk Framework](docs/governance/ai-risk-framework.md)
 - [Autorização](docs/security/authorization.md)
 - [Segurança de RAG e memória](docs/security/rag-memory-security.md)
@@ -150,6 +158,7 @@ A pipeline `quality.yml` executa:
 - validações semânticas de contratos e policies;
 - verificação do manifest do book;
 - verificação de links e integridade documental;
+- validação do catálogo de ADRs, IDs, títulos e pasta canônica;
 - compilação dos diagramas PlantUML;
 - testes da amostra técnica;
 - validação do Docker Compose;

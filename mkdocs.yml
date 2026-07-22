@@ -69,9 +69,13 @@ nav:
       - Event Storming: architecture/diagrams/event-storming.md
   - ADRs:
       - Visão geral: adrs/index.md
-      - MCP em vez de REST direto: adrs/001-mcp-vs-rest.md
+      - MCP e REST: adrs/001-mcp-vs-rest.md
       - Memória persistente: adrs/002-persistent-memory.md
       - Agent Gateway: adrs/003-agent-gateway.md
+      - Agent Runtime: adrs/004-agent-runtime-strategy.md
+      - Busca vetorial e híbrida: adrs/005-vector-search-strategy.md
+      - Observabilidade: adrs/006-observability-strategy.md
+      - Avaliação: adrs/007-evaluation-strategy.md
   - Casos aplicados:
       - IA conversacional para renegociação: case-studies/conversational-ai.md
   - FinOps:
@@ -83,12 +87,13 @@ nav:
       - Data stores: contracts/data-stores.md
   - Governança:
       - Enterprise AI Governance: governance/ai-governance-framework.md
+      - Crosswalk de compliance: governance/compliance-crosswalk.md
       - Responsible AI: governance/responsible-ai.md
       - Fluxo de aprovação: governance/approval-workflow.md
       - AI Risk Framework: governance/ai-risk-framework.md
       - Evaluation Framework: governance/evaluation-framework.md
       - Catálogo de IA: governance/ai-catalog.md
-      - Ciclo de modelos: governance/model-lifecycle.md
+      - Data, Model, Prompt and Knowledge Lifecycle: governance/model-lifecycle.md
   - Segurança:
       - AI Security Architecture: security/ai-security-architecture.md
       - Autenticação: security/authentication.md

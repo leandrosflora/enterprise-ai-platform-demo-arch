@@ -35,16 +35,19 @@ flowchart LR
 
 ## Artefatos governados
 
-- AI use case e finalidade;
+- AI use case, finalidade e Outcome Card;
 - Agent Card ou Model Card;
 - risk assessment;
 - ADRs de arquitetura e seleção de modelo;
-- fontes de dados e lineage;
-- prompts, modelos, ferramentas e políticas versionados;
+- fontes de dados, data contracts e lineage;
+- datasets, prompts, modelos, embeddings, ferramentas e políticas versionados;
+- knowledge snapshot e release manifest;
 - golden dataset e evaluation report;
 - threat model e privacy assessment;
 - aprovações, exceções e riscos residuais;
 - dashboards, incidentes e plano de retirada.
+
+O lifecycle detalhado desses ativos está em [Data, Model, Prompt and Knowledge Lifecycle](model-lifecycle.md).
 
 ## Gates
 
@@ -68,6 +71,23 @@ flowchart LR
 | LGPD | finalidade, necessidade, transparência, segurança e direitos do titular |
 | EU AI Act | classificação por risco e obrigações proporcionais quando aplicável |
 | OWASP LLM | threat model e testes de segurança para aplicações com LLM |
+
+A relação acima é conceitual. A rastreabilidade operacional entre controle, função normativa, evidência, owner, gate e enforcement está no [Crosswalk de Governança, Risco e Compliance](compliance-crosswalk.md).
+
+## Rastreabilidade de controle
+
+Cada controle aplicável deve possuir:
+
+- identificador estável;
+- referência ao risco tratado;
+- owner e aprovador quando aplicável;
+- evidência mínima;
+- gate em que é verificado;
+- enforcement automático, humano ou híbrido;
+- regra de exceção e expiração;
+- indicador de eficácia.
+
+Documentação sem evidência ou enforcement não é considerada controle implementado.
 
 ## Exceções
 
@@ -99,6 +119,8 @@ Automatizar controles objetivos:
 
 - tempo de aprovação por nível de risco;
 - percentual de soluções com evidências completas;
+- cobertura dos controles do crosswalk;
+- controles automatizados versus manuais;
 - exceções abertas e vencidas;
 - regressões e incidentes por versão;
 - cobertura de avaliação e red-team;
