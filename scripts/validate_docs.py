@@ -11,7 +11,6 @@ LINK_PATTERN = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 CODE_FENCE_PATTERN = re.compile(r"```.*?```", re.DOTALL)
 ADR_FILENAME_PATTERN = re.compile(r"^(?P<id>\d{3})-[a-z0-9-]+\.md$")
 ADR_HEADING_PATTERN = re.compile(r"^# ADR-(?P<id>\d{3})\b", re.MULTILINE)
-LEGACY_ADR_REFERENCES = ("docs/adr/", "../adr/")
 
 
 def local_target(source: Path, raw_target: str) -> Path | None:
@@ -22,6 +21,11 @@ def local_target(source: Path, raw_target: str) -> Path | None:
     if not target:
         return None
     return (source.parent / target).resolve()
+
+
+def is_legacy_adr_target(target: Path) -> bool:
+    legacy_dir = (ROOT / "docs/adr").resolve()
+    return target == legacy_dir or legacy_dir in target.parents
 
 
 def validate_adrs(errors: list[str]) -> None:
@@ -95,16 +99,12 @@ def main() -> int:
             continue
         text = CODE_FENCE_PATTERN.sub("", source.read_text(encoding="utf-8"))
 
-        for legacy_reference in LEGACY_ADR_REFERENCES:
-            if legacy_reference in text:
-                errors.append(
-                    f"Legacy ADR reference in {source.relative_to(ROOT)}: {legacy_reference}"
-                )
-
         for raw_target in LINK_PATTERN.findall(text):
             target = local_target(source, raw_target)
             if target is None:
                 continue
+            if is_legacy_adr_target(target):
+                errors.append(f"Legacy ADR link: {source.relative_to(ROOT)} -> {raw_target}")
             if not target.exists():
                 errors.append(f"Broken link: {source.relative_to(ROOT)} -> {raw_target}")
 
