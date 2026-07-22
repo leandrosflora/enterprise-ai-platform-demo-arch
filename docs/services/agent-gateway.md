@@ -45,4 +45,4 @@ Authorization: Bearer <token>
 
 ## Decisões Relacionadas
 
-- [ADR-001 Agent Runtime Strategy](../adr/ADR-001-agent-runtime-strategy.md)
+- [ADR-004 — Agent Runtime com núcleo estável e adaptadores](../adrs/004-agent-runtime-strategy.md)
