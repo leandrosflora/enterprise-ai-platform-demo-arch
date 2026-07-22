@@ -9,6 +9,9 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[1]
 LINK_PATTERN = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 CODE_FENCE_PATTERN = re.compile(r"```.*?```", re.DOTALL)
+ADR_FILENAME_PATTERN = re.compile(r"^(?P<id>\d{3})-[a-z0-9-]+\.md$")
+ADR_HEADING_PATTERN = re.compile(r"^# ADR-(?P<id>\d{3})\b", re.MULTILINE)
+LEGACY_ADR_REFERENCES = ("docs/adr/", "../adr/")
 
 
 def local_target(source: Path, raw_target: str) -> Path | None:
@@ -21,6 +24,68 @@ def local_target(source: Path, raw_target: str) -> Path | None:
     return (source.parent / target).resolve()
 
 
+def validate_adrs(errors: list[str]) -> None:
+    legacy_dir = ROOT / "docs/adr"
+    canonical_dir = ROOT / "docs/adrs"
+    index_path = canonical_dir / "index.md"
+
+    if legacy_dir.exists():
+        errors.append("Legacy ADR directory must not exist: docs/adr")
+
+    if not canonical_dir.exists():
+        errors.append("Canonical ADR directory missing: docs/adrs")
+        return
+
+    if not index_path.exists():
+        errors.append("ADR index missing: docs/adrs/index.md")
+        return
+
+    index_text = index_path.read_text(encoding="utf-8")
+    seen_ids: dict[str, Path] = {}
+    adr_files = sorted(path for path in canonical_dir.glob("*.md") if path.name != "index.md")
+
+    if not adr_files:
+        errors.append("No canonical ADR files found in docs/adrs")
+        return
+
+    for adr_file in adr_files:
+        filename_match = ADR_FILENAME_PATTERN.match(adr_file.name)
+        if not filename_match:
+            errors.append(f"Invalid ADR filename: {adr_file.relative_to(ROOT)}")
+            continue
+
+        filename_id = filename_match.group("id")
+        text = adr_file.read_text(encoding="utf-8")
+        heading_match = ADR_HEADING_PATTERN.search(text)
+        if not heading_match:
+            errors.append(f"ADR heading missing or invalid: {adr_file.relative_to(ROOT)}")
+            continue
+
+        heading_id = heading_match.group("id")
+        if filename_id != heading_id:
+            errors.append(
+                f"ADR ID mismatch: {adr_file.relative_to(ROOT)} uses {filename_id} in filename and {heading_id} in heading"
+            )
+
+        previous = seen_ids.get(filename_id)
+        if previous is not None:
+            errors.append(
+                f"Duplicate ADR ID {filename_id}: {previous.relative_to(ROOT)} and {adr_file.relative_to(ROOT)}"
+            )
+        else:
+            seen_ids[filename_id] = adr_file
+
+        if f"({adr_file.name})" not in index_text:
+            errors.append(f"ADR missing from index: {adr_file.relative_to(ROOT)}")
+
+    numeric_ids = sorted(int(value) for value in seen_ids)
+    if numeric_ids:
+        expected_ids = list(range(1, numeric_ids[-1] + 1))
+        if numeric_ids != expected_ids:
+            formatted = ", ".join(f"{value:03d}" for value in numeric_ids)
+            errors.append(f"ADR IDs must be contiguous from 001; found: {formatted}")
+
+
 def main() -> int:
     errors: list[str] = []
     markdown_files = list(ROOT.rglob("*.md"))
@@ -29,6 +94,13 @@ def main() -> int:
         if ".git" in source.parts:
             continue
         text = CODE_FENCE_PATTERN.sub("", source.read_text(encoding="utf-8"))
+
+        for legacy_reference in LEGACY_ADR_REFERENCES:
+            if legacy_reference in text:
+                errors.append(
+                    f"Legacy ADR reference in {source.relative_to(ROOT)}: {legacy_reference}"
+                )
+
         for raw_target in LINK_PATTERN.findall(text):
             target = local_target(source, raw_target)
             if target is None:
@@ -39,6 +111,9 @@ def main() -> int:
     required_paths = [
         ROOT / "README.md",
         ROOT / "docs/index.md",
+        ROOT / "docs/adrs/index.md",
+        ROOT / "docs/governance/compliance-crosswalk.md",
+        ROOT / "docs/governance/model-lifecycle.md",
         ROOT / "docs/contracts/openapi.yaml",
         ROOT / "docs/contracts/async-api.yaml",
         ROOT / "docs/architecture/control-plane-data-plane.md",
@@ -49,6 +124,8 @@ def main() -> int:
     for path in required_paths:
         if not path.exists():
             errors.append(f"Required artifact missing: {path.relative_to(ROOT)}")
+
+    validate_adrs(errors)
 
     # Every service cited as a Markdown list item in domain docs must have a page.
     for domain in (ROOT / "docs/domains").glob("*.md"):
