@@ -49,4 +49,4 @@ GET /evaluations/{id}
 
 ## Decisões Relacionadas
 
-- [ADR-005 Evaluation Framework](../adr/ADR-005-evaluation-framework.md)
+- [ADR-007 — Avaliação híbrida e contínua de IA](../adrs/007-evaluation-strategy.md)
